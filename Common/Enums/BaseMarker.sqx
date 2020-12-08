@@ -1,0 +1,19 @@
+/*
+ * Name:	BaseMarker
+ * Date:	2020-07-01
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Abstracted base marker for markers that exists in both west's and east's base.
+ */
+namespace Tvtcf.Common
+{
+	public enum BaseMarker
+	{
+		Respawn,
+		AmmoCrate,
+		Naval,
+		LandVehicles
+	};
+};

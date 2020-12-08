@@ -1,0 +1,49 @@
+/*
+ * Name:	CampaignEndService
+ * Date:	2020-09-18
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles the end game briefing and scene.
+ */
+
+using Sqx.Services;
+
+namespace Tvtcf.Client
+{
+	public class CampaignEndService : Service
+	{
+		private fields ["_mIsVictory" as Boolean];
+	
+		public constructor("_isVictory" as Boolean)
+		{
+			call _base.Constructor;
+			_mIsVictory = _isVictory;
+		};
+	
+		protected override method Run()
+		{
+			cutText ["", "BLACK IN", 1];
+			
+			var _i = 60;
+			
+			while { _i >= 0 } do {
+				var _text = "CAMPAIGN VICTORY! ";
+				
+				if (!_mIsVictory) then {
+					_text = "CAMPAIGN DEFEAT! ";
+				};
+				
+				hint (_text + str _i);
+				
+				sleep 1;
+				_i = _i - 1;
+			};
+			
+			["END1", _mIsVictory] spawn BIS_fnc_endMission;
+			
+			call _base.Run;
+		};
+	};
+};

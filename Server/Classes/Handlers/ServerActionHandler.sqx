@@ -1,0 +1,42 @@
+/*
+ * Name:	ServerActionHandler
+ * Date:	2020-08-04
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Par of the TvTCF framework to handle user actions in missions.
+ */
+
+using Tvtcf.Communication;
+
+namespace Tvtcf.Server
+{
+	public class ServerActionHandler
+	{
+		private fields ["_mCurrentActionId" as Scalar];
+		
+		// Creates a ServerActionHandler object.
+		public constructor()
+		{
+			_mCurrentActionId = 0;
+		};
+		
+		// Adds an action to an object.
+		// _object (Object): The object to have the action.
+		// _title (String): The title visible on the action menu.
+		// _side (Side): Which players that this action is visible to.
+		// Returns (Scalar): The ID of the action. Used in method OnAction to identify which action that fired.
+		public method Scalar AddAction("_object" as Object, "_title" as String, "_side" as Side)
+		{
+			_mCurrentActionId = _mCurrentActionId + 1;			
+			["ClientEventReciever.OnAddAction", [_mCurrentActionId, _object, _title, _side]] call Remote.Invoke;
+			return _mCurrentActionId;
+		};
+		
+		public method DeleteActions("_actionIds" as Array /* of Scalar */)
+		{
+			["ClientEventReciever.OnDeleteActions", [_actionIds]] call Remote.Invoke;
+		};
+	};
+};

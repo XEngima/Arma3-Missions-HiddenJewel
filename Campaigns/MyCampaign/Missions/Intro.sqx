@@ -1,0 +1,30 @@
+/*
+ * Name:	Intro
+ * Date:	2020-08-11
+ * Author:  Engima
+ *
+ * Description:
+ * The first mission of my operation.
+ * For documentation of all usable properties and methods, see the comments in file Campaigns\Shared\Mission.sqx.
+ */
+
+using Tvtcf.Common;
+using Tvtcf.Server;
+using Campaigns;
+
+namespace Campaigns.MyCampaign
+{
+	public class Intro : Mission
+	{
+		// Creates a Intro object.
+		public constructor()
+		{
+			call _base.Constructor;
+		};
+		
+		protected override method InitMission("_mission" as MissionSettings)
+		{
+			_mission.Name = "Intro";
+		};
+	};
+};

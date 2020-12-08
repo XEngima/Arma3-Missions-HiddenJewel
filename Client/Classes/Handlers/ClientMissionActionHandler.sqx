@@ -1,0 +1,51 @@
+/*
+ * Name:	ClientMissionActionHandler
+ * Date:	2020-08-04
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles all about user action menu items for missions.
+ */
+
+using Tvtcf.Communication;
+
+namespace Tvtcf.Client
+{
+	public class ClientMissionActionHandler
+	{
+		private fields ["_mActionMappings" as Array /* of ActionMapping */];
+		
+		public constructor()
+		{
+			_mActionMappings = [];
+		};
+		
+		public static method OnAction("_target" as Object, "_caller" as Object, "_actionId" as Scalar, "_serverActionId" as Scalar)
+		{
+			["ServerEventReciever.OnAction", [_serverActionId, _target, _caller]] call Remote.Invoke;
+		};
+		
+		public method AddAction("_serverActionId" as Scalar, "_object" as Object, "_title" as String)
+		{
+			private _clientActionId = _object addAction [_title, { call Tvtcf_Client_ClientMissionActionHandler_OnAction }, _serverActionId, 100, false, true, "", "true", 5];
+			_mActionMappings pushBack [_serverActionId, _clientActionId, _object] new ActionMapping;
+		};
+		
+		public method DeleteActions("_serverActionIds" as Array /* of Scalar */)
+		{
+			private _actionMappingsToKeep = [];
+			
+			{
+				if (_x.ServerActionId in _serverActionIds) then {
+					_x.Target removeAction _x.ClientActionId;
+				}
+				else {
+					_actionMappingsToKeep pushBack _x;
+				};
+			} foreach _mActionMappings as ActionMapping;
+			
+			_mActionMappings = _actionMappingsToKeep;
+		};
+	};
+};

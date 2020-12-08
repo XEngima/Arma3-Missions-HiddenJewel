@@ -1,0 +1,54 @@
+/*
+ * Name:	TutorialDialog
+ * Date:	2017-11-29
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Class that models a tutorial dialog.
+ */
+namespace Tvtcf.Client
+{
+	#region "Static Properties"
+	
+	Tvtcf_Client_TutorialDialog_DialogsTurnedOff = false;
+
+	#endregion
+	
+	public class TutorialDialog
+	{
+		private fields ["_mTutorial" as Tutorial];
+		
+		// Creates a TutorialDialog object.
+		public constructor {
+			params ["_tutorial" as Tutorial];
+			_mTutorial = _tutorial;
+			_self.TurnOffTutorials = false;
+		};
+		
+		// Gets wether the user has selected to turn off tutorials or not.
+		public property Boolean TurnOffTutorials { get; private set; };
+		
+		// Shows the dialog.
+		// Returns (DialogResult): A dialog result.
+		public method DialogResult ShowDialog {
+			private ["_dlgHeader" as Scalar, "_dlgText" as Scalar];
+			
+			waitUntil { !dialog };
+		
+			_dlgHeader = 43;
+			_dlgText = 44;
+			
+            createDialog "IntTutorialDialog";
+
+            ctrlSetText [_dlgHeader, _mTutorial.Header];
+            ctrlSetText [_dlgText, _mTutorial.Text];
+
+			waitUntil { !dialog };
+			
+			_self.TurnOffTutorials = Tvtcf_Client_TutorialDialog_DialogsTurnedOff;
+			
+			DialogResult.Ok
+		};
+	};
+};

@@ -1,0 +1,58 @@
+/*
+ * Name:	MissionPrepareCounter
+ * Date:	2020-08-21
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Counts down until insertion is allowed before each mission.
+ */
+
+using Sqx.Services;
+using Tvtcf.Common;
+
+namespace Tvtcf.Client
+{
+	public class MissionPrepareCounter : Service
+	{
+		private fields ["_mClientMessageHandler" as ClientMessageHandler, "_mInsertionTime" as Scalar];
+		
+		// Creates a MissionPrepareCounter object.
+		public constructor("_clientMessageHandler" as ClientMessageHandler, "_insertionTime" as Scalar)
+		{
+			call _base.Constructor;
+			
+			_mClientMessageHandler = _clientMessageHandler;
+			_mInsertionTime = _insertionTime;
+		};
+		
+		protected override method Run()
+		{
+			var _time = call Functions.GetMissionTime;
+			var _hasWaited = false;
+			var _seconds = 0;
+			
+			while { _time < _mInsertionTime } do
+			{
+				var _timeLeft = ceil (_mInsertionTime - (call Functions.GetMissionTime));
+				
+				if (_seconds >= 10) then {
+					["Insertion allowed in " + str _timeLeft + " seconds."] call _mClientMessageHandler.ShowSubTitle;
+				};
+				
+				sleep 1;
+				
+				_time = call Functions.GetMissionTime;				
+				
+				_hasWaited = true;
+				_seconds = _seconds + 1;
+			};
+			
+			if (_hasWaited) then {
+				["Insertion allowed!"] call _mClientMessageHandler.ShowSubTitle;
+			};
+
+			call _base.Run;
+		};
+	};
+};

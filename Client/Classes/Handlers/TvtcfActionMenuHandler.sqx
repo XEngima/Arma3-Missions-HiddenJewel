@@ -1,0 +1,193 @@
+/*
+ * Name:    TvtcfActionMenuHandler
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Encapsulates all logic for the TvTCF Campaign Menu.
+ */
+
+using Tvtcf.Common;
+using Tvtcf.Common.Statics;
+using Tvtcf.Communication;
+using Tvtcf.Client.Statics;
+
+namespace Tvtcf.Client
+{
+	public class TvtcfActionMenuHandler
+	{
+		private static fields ["_mMissionMenuActionId" as Scalar, "_player" as Object];
+		
+        // Initializes the TvTCF Menu for the player and adds the "Open Mission Menu" action.
+        public static method Init()
+        {
+        	_mMissionMenuActionId = -1;
+        	_player = objNull;
+        	_self.OptionPerformInsertionVisible = false;
+        	call _self.UpdateVisibleOptions;
+		};
+		
+		private static method ShowAction()
+		{
+			if (!isNull _player) then {
+				call _self.HideAction;
+			};
+		
+			if (_mMissionMenuActionId < 0 || isNull _player || { _player != player }) then
+			{
+				_mMissionMenuActionId = player addAction ["<t color='#AAAAFF'>Open Mission Menu</t>", { call _self.Open; }, nil, 100, false];
+				_player = player;
+			};
+		};
+		
+		private static method HideAction()
+		{
+			if (_mMissionMenuActionId >= 0 && !isNull _player) then {
+				_player removeAction _mMissionMenuActionId;
+				_mMissionMenuActionId = -1;
+				_player = objNull;
+			};
+		};
+		
+		#region Option Properties
+		
+		public static property Boolean OptionPerformInsertionVisible { get; private set; };
+		
+		public static property Boolean OptionEndMissionVisible { get; private set; };
+		
+		public static property Boolean OptionForceNextMissionVisible { get; private set; };
+		
+		#endregion
+		
+		#region Show Methods
+		
+		private static method ShowOptionPerformInsertion("_show" as Boolean)
+		{
+			if (_show != _self.OptionPerformInsertionVisible) then {
+				_self.OptionPerformInsertionVisible = _show;
+				call _self.BuildCampaignMenu;
+			};
+		};
+		
+		private static method ShowOptionEndMission("_show" as Boolean)
+		{
+			if (_show != _self.OptionEndMissionVisible) then {
+				_self.OptionEndMissionVisible = _show;
+				call _self.BuildCampaignMenu;
+			};
+		};
+		
+		private static method ShowOptionForceNextMission("_show" as Boolean)
+		{
+			if (_show != _self.OptionForceNextMissionVisible) then {
+				_self.OptionForceNextMissionVisible = _show;
+				call _self.BuildCampaignMenu;
+			};
+		};
+
+		#endregion
+		
+		#region Methods
+		
+		public static method UpdateVisibleOptions()
+		{
+			// Option Perform Insertion
+			
+			var _playerGroupHasInserted = false;
+			
+			if (playerSide == west) then {
+				_playerGroupHasInserted = call PublicVariableHandler.GetWestHasInserted;
+			}
+			else {
+				_playerGroupHasInserted = call PublicVariableHandler.GetEastHasInserted;
+			};
+
+			var _missionHasStarted = call PublicVariableHandler.GetMissionHasStarted;
+			_self.OptionPerformInsertionVisible = (_missionHasStarted) && !_playerGroupHasInserted;
+
+			// Option End Mission
+			
+			_self.OptionEndMissionVisible =
+				_missionHasStarted &&
+				CommonObjects.MissionParametersHandler.EnableServerAdminOptions &&
+				((call BIS_fnc_admin) > 0 || isServer);
+				
+			// Option Force Next Mission
+			
+			_self.OptionForceNextMissionVisible =
+				!_missionHasStarted &&
+				CommonObjects.MissionParametersHandler.EnableServerAdminOptions &&
+				((call BIS_fnc_admin) > 0 || isServer);
+
+			call _self.BuildCampaignMenu;
+		};
+		
+		private static method BuildCampaignMenu()
+		{
+			TVTCF_TvtcfMenu = 
+			[
+			  ["Mission Menu", true]
+			];
+			
+			if (_self.OptionPerformInsertionVisible) then {
+				TVTCF_TvtcfMenu pushBack ["Perform Insertion", [0], "", -5, [["expression", "call Tvtcf_Client_TvtcfActionMenuHandler_OnPerformInsertion"]], "1", "1"];
+			};
+			
+			if (_self.OptionEndMissionVisible) then {
+				TVTCF_TvtcfMenu pushBack ["End Mission", [0], "", -5, [["expression", "call Tvtcf_Client_TvtcfActionMenuHandler_OnEndMission"]], "1", "1"];
+			};
+			
+			if (_self.OptionForceNextMissionVisible) then {
+				TVTCF_TvtcfMenu pushBack ["Play Next Mission", [0], "", -5, [["expression", "call Tvtcf_Client_TvtcfActionMenuHandler_OnForceNextMission"]], "1", "1"];
+			};
+			
+			// Check all options, if none is visible then remove the action menu item.
+			
+			if (!_self.OptionPerformInsertionVisible && !_self.OptionEndMissionVisible && !_self.OptionForceNextMissionVisible) then {
+				call _self.HideAction;
+			}
+			else {
+				call _self.ShowAction;
+			};
+		};
+		
+		// Opens the TvTCF menu for the current player.
+		public static method Open()
+		{
+			showCommandingMenu "#USER:TVTCF_TvtcfMenu";
+		};
+		
+		#endregion
+		
+		#region Option Event Handlers
+		
+		// Called when the local player selects the "PerformInsertion" option.
+		private static method OnPerformInsertion()
+		{
+			private ["_missionMarkersInfo" as MissionMarkersInfo];
+			
+			if (call PublicVariableHandler.HasValueMissionMarkersInfo) then
+			{
+				_missionMarkersInfo = call PublicVariableHandler.GetMissionMarkersInfo;
+				
+				[[playerSide] call _missionMarkersInfo.GetStartMarkersBySide] call ClientObjects.PerformInsertionService.Reset;
+				
+				call ClientObjects.PerformInsertionService.RunAsync;
+			};
+		};
+		
+		// Called when the local player selects the "End Mission" option.
+		private static method OnEndMission()
+		{
+			["ServerEventReciever.OnEndMission", []] call Remote.Invoke;
+		};
+		
+		// Called when the local player selects the "End Mission" option.
+		private static method OnForceNextMission()
+		{
+			["ServerEventReciever.OnForceNextMission", []] call Remote.Invoke;
+		};
+		
+		#endregion
+	};
+};

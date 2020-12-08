@@ -1,0 +1,19 @@
+/*
+ * Name:	ObjectivePrio
+ * Date:	2020-07-02
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Enum that describes objectives prio.
+ */
+namespace Tvtcf.Common
+{
+	public enum ObjectivePrio
+	{
+		Primary,
+		Secondary,
+		Return
+	};
+};
+

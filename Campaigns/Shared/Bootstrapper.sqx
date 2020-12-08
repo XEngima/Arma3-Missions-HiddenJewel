@@ -1,0 +1,25 @@
+/*
+ * Name:	CampaignStarter
+ * Date:	2020-08-06
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * This class has a purpose of initializing, creating and telling the framework which campaign to start when 
+ * the Arma 3 mission starts.
+ */
+
+// 1. Include the campaign's init file (which in turn includes all the files necessary for the campaign).
+call compile preprocessFileLineNumbers "Campaigns\MyCampaign\InitCampaign.sqx";
+
+namespace Campaigns
+{
+	public class Bootstrapper
+	{
+		public static method Campaign GetCampaign()
+		{
+			// 2. Create the campaign object
+			return new Campaigns.MyCampaign.MyOperation;
+		};
+	};
+};

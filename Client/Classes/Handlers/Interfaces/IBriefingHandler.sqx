@@ -1,0 +1,24 @@
+/*
+ * Name:    IBriefingHandler
+ * Date:	2020-01-13
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles the mission's briefing.
+ */
+
+using Tvtcf.Common;
+
+namespace Tvtcf.Client
+{
+	public interface IBriefingHandler
+	{
+        // Creates the briefing texts for the player.
+        method CreateBriefing("_missionName" as String, "_briefingInfo" as String);
+        
+        method AddMissionResultToHistory("_missionResult" as MissionResult);
+        
+        method CreateWelcomeBriefing("_welcomeText" as String);
+	};
+};

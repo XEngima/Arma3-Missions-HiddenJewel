@@ -1,0 +1,156 @@
+/*
+ * Name:	MapMarkerHandler
+ * Date:	2020-06-26
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles map markers on the client.
+ */
+
+using Tvtcf.Common;
+
+namespace Tvtcf.Client
+{
+	public class MapMarkerHandler
+	{
+		private fields ["_mBaseMarkersConfig" as IBaseMarkersConfig, "_mLocalStartMarkers" as Array, "_mLocalMarkers" as Array];
+		
+		// Creates a MapMarkerHandler object.
+		public constructor("_baseMarkersConfig" as IBaseMarkersConfig)
+		{
+			_mBaseMarkersConfig = _baseMarkersConfig;
+			_mLocalStartMarkers = [];
+			_mLocalMarkers = [];
+			_self.MissionHasReturnObjective = false;
+			_self.InsertionMapPosition = [];
+			_self.BaseMarker = "";
+		};
+		
+		public property Array InsertionMapPosition { get; private set; };
+		
+		public property String BaseMarker { get; private set; };
+		
+		public property Boolean MissionHasReturnObjective { get; private set; };
+		
+		public method RemoveInsertionMarkers()
+		{
+			{
+				deleteMarkerLocal _x;
+			} foreach _mLocalStartMarkers;
+			
+			_mLocalStartMarkers = [];
+		};
+		
+		public method AddInsertionMarker("_position" as Array)
+		{
+			call _self.RemoveInsertionMarkers;
+		
+			private _marker = createMarkerLocal ["_extractionMarkerLocal", _position];
+			_marker setMarkerShapeLocal "ICON";
+			_marker setMarkerTypeLocal "mil_start";
+			
+			_mLocalMarkers pushBack _marker;
+		};
+		
+		public method AddMarker("_markerInfo" as Marker)
+		{
+			var _marker = createMarkerLocal [_markerInfo.Name, _markerInfo.Position];
+			_marker setMarkerShapeLocal _markerInfo.Shape;
+			_marker setMarkerSizeLocal _markerInfo.Size;
+			_marker setMarkerDirLocal _markerInfo.Direction;
+			_marker setMarkerTypeLocal _markerInfo.Type;
+			_marker setMarkerColorLocal _markerInfo.Color;
+			_marker setMarkerBrushLocal _markerInfo.Brush;
+			_marker setMarkerTextLocal _markerInfo.Text;
+			_marker setMarkerAlphaLocal _markerInfo.Alpha;
+			
+			_mLocalMarkers pushBack _marker;
+		};
+		
+		public method CleanUpAllMarkers()
+		{
+			// Remove all earlier markers
+			
+			if (_self.BaseMarker != "") then {
+				deleteMarkerLocal _self.BaseMarker;
+			};
+			
+			call _self.RemoveInsertionMarkers;
+			
+			{
+				deleteMarkerLocal _x;
+			} foreach _mLocalMarkers;
+			
+			_mLocalMarkers = [];
+		};
+		
+		public method UpdateMarkers("_missionMarkersInfo" as MissionMarkersInfo)
+		{
+			_self.MissionHasReturnObjective = [playerSide] call _missionMarkersInfo.CheckUseExtractionMarker;
+		
+			// Draw start markers
+			
+			private _startMarkerColor = "ColorBlack"; // if (playerSide == west) then { "colorBLUFOR" } else { "colorOPFOR" };
+			var _startMarkers = [];
+			
+			{
+				if (_x.Side == playerSide) then
+				{
+					private _name = _x.Name + "_local";
+					private _pos = getMarkerPos _x.Name;
+					
+					private _marker = createMarkerLocal [_name, _pos];
+					_mLocalStartMarkers pushBack _marker;
+					_startMarkers pushBack _marker;
+
+					_marker setMarkerShapeLocal (markerShape _x.Name);
+					_marker setMarkerSizeLocal (markerSize _x.Name);
+					_marker setMarkerDirLocal (markerDir _x.Name);
+					_marker setMarkerColorLocal _startMarkerColor;
+					//_marker setMarkerBrushLocal "DiagGrid";
+				};
+			} foreach _missionMarkersInfo.StartMarkers as MarkerInfo;
+			
+			// Base marker
+			
+			var _respawnMarker = [playerSide, BaseMarker.Respawn] call _mBaseMarkersConfig.GetMarkerName;
+			_self.BaseMarker = createMarkerLocal ["_baseMarkerLocal", getMarkerPos _respawnMarker];
+			_self.BaseMarker setMarkerTypeLocal "b_hq";
+			
+			// Insertion marker
+			
+			var _pos = [0, 0, 0];
+			
+			if (count _startMarkers > 0) then {
+				_pos = [_startMarkers] call Functions.FindClosestToMarkersPos;
+			}
+			else {
+				var _respawnMarker = [playerSide, BaseMarker.Respawn] call _mBaseMarkersConfig.GetMarkerName;
+				_pos = getMarkerPos _respawnMarker;
+			};
+			
+			_self.InsertionMapPosition = _pos;
+			
+			// Draw other markers
+			
+			{
+				if (_x.Side == playerSide) then {
+					private _name = _x.Name + "_local";
+					private _pos = getMarkerPos _x.Name;
+					
+					private _marker = createMarkerLocal [_name, _pos];
+					_mLocalMarkers pushBack _marker;
+					
+					_marker setMarkerShapeLocal (markerShape _x.Name);
+					_marker setMarkerSizeLocal (markerSize _x.Name);
+					_marker setMarkerDirLocal (markerDir _x.Name);
+					_marker setMarkerColorLocal (markerColor _x.Name);
+					_marker setMarkerBrushLocal (markerBrush _x.Name);
+					_marker setMarkerTypeLocal (markerType _x.Name);
+					_marker setMarkerTextLocal (markerText _x.Name);
+				};
+			} foreach _missionMarkersInfo.Markers as MarkerInfo;
+		};
+	};
+};

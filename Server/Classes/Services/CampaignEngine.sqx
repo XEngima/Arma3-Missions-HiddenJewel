@@ -1,0 +1,672 @@
+/*
+ * Name:	CampaignEngine
+ * Date:	2020-06-24
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * The class that executed a campaign.
+ */
+
+using Sqx.Services;
+using Tvtcf.Communication;
+using Tvtcf.Common;
+using Campaigns;
+
+namespace Tvtcf.Server
+{
+	public class CampaignEngine : Service
+	{
+		private fields ["_mBaseMarkersConfig" as IBaseMarkersConfig, "_mServerActionHandler" as ServerActionHandler, "_mCampaign" as Campaign, "_mMissionUnitsHandler" as MissionUnitsHandler, "_mWestlyUnits" as Array, "_mEastlyUnits" as Array, "_mAiUnitsWestCount" as Scalar, "_mAiUnitsEastCount" as Scalar, "_mTimeBetweenMissions" as Scalar, "_mCampaignLimitTime" as Scalar, "_mCampaignMode" as CampaignMode];
+		private fields ["_mCurrentMission" as Mission, "_mEastHasInserted" as Boolean, "_mWestHasInserted" as Boolean, "_mMissionMarkersInfo" as MissionMarkersInfo];
+		private fields ["_mWestPrimaryObjectiveCompleted" as Boolean, "_mWestSecondaryObjectiveCompleted" as Boolean, "_mWestReturnObjectiveCompleted" as Boolean, "_mEastPrimaryObjectiveCompleted" as Boolean, "_mEastSecondaryObjectiveCompleted" as Boolean, "_mEastReturnObjectiveCompleted" as Boolean];
+		private fields ["_mForceNextMission" as Boolean, "_mObjectiveChangeCollection" as ObjectiveChangeCollection, "_mMissionResults" as Array /* of MissionResult */];
+		private fields ["_mCampaignStartTickTime" as Scalar];
+	
+		// Creates a Campaign object.
+		public constructor("_baseMarkersConfig" as IBaseMarkersConfig, "_missionUnitsHandler" as MissionUnitsHandler, "_aiUnitsWestCount" as Scalar, "_aiUnitsEastCount" as Scalar, "_timeBetweenMissions" as Scalar, "_campaignLimitTime" as Scalar, "_campaignMode" as CampaignMode)
+		{
+			call _base.Constructor;
+			
+			_mBaseMarkersConfig = _baseMarkersConfig;
+			_mMissionUnitsHandler = _missionUnitsHandler;
+			_mAiUnitsWestCount = _aiUnitsWestCount;
+			_mAiUnitsEastCount = _aiUnitsEastCount;
+			_mTimeBetweenMissions = _timeBetweenMissions;
+			_mCampaignLimitTime = _campaignLimitTime;
+			_mCampaignMode = _campaignMode;
+			_mForceNextMission = false;
+			_mObjectiveChangeCollection = new ObjectiveChangeCollection;
+			_mMissionResults = [];
+			
+			_mServerActionHandler = new ServerActionHandler;
+			
+			call _self.ClearAllMapMarkers;
+		};
+		
+		public method SetCampaign("_campaign" as Campaign)
+		{
+			[_mCampaignMode] call _campaign.SetCampaignMode;
+			_mCampaign = _campaign;
+		};
+		
+		private method ClearAllMapMarkers()
+		{
+			{
+				_x setMarkerAlpha 0;
+			} foreach allMapMarkers as String;
+		};
+		
+		private method NotifyClientsAboutMissionStart("_mission" as Mission)
+		{
+			private ["_startMarkers" as Array /* of MarkerInfo */, "_markers" as Array /* of MarkerInfo */];
+			
+			_startMarkers = [];
+			_markers = [];
+			
+			{
+				_startMarkers pushBack [_x, west] new MarkerInfo;
+			} foreach [west] call _mission.GetInsertionAreaMarkers as String;
+			
+			{
+				_startMarkers pushBack [_x, east] new MarkerInfo;
+			} foreach [east] call _mission.GetInsertionAreaMarkers as String;
+			
+			{
+				_markers pushBack [_x, west] new MarkerInfo;
+			} foreach [west] call _mission.GetVisibleMarkers as String;
+			
+			{
+				_markers pushBack [_x, east] new MarkerInfo;
+			} foreach [east] call _mission.GetVisibleMarkers as String;
+			
+			_mMissionMarkersInfo = [_startMarkers, _markers, [west] call _mission.GetSideHasReturnObjective, [east] call _mission.GetSideHasReturnObjective] new MissionMarkersInfo;
+		
+			[_mMissionMarkersInfo] call PublicVariableHandler.BroadcastMissionMarkersInfo;
+			["ClientEventReciever.OnMissionSetup", [_mMissionMarkersInfo]] call Remote.Invoke;
+		};
+		
+		private method InsertSideWithNoPlayers("_missionMarkersInfo" as MissionMarkersInfo)
+		{
+			private ["_markerInfos" as Array, "_marker" as String];
+			
+			{
+				private _side = _x;
+				private _playersCount = 0;
+				
+				{
+					if (side group _x == _side) then {
+						_playersCount = _playersCount + 1;
+					};
+				} foreach call BIS_fnc_listPlayers;
+				
+				if (_playersCount == 0) then
+				{
+					// If no insertion markers are specified, perform insertion immediately
+					_markerInfos = [_side] call _missionMarkersInfo.GetStartMarkersBySide;
+
+					if (count _markerInfos > 0) then {
+						_marker = _markerInfos select 0;
+					}
+					else {
+						_marker = [_side, BaseMarker.Respawn] call _mBaseMarkersConfig.GetMarkerName;
+					};
+					
+					private _switchableUnits = call _mMissionUnitsHandler.GetSwitchableUnits;
+					
+					{
+						if (side group _x == _side) then {
+							_x setPos getMarkerPos _marker;
+						};
+					} foreach _switchableUnits as Object;
+				};
+			} foreach [west, east] as Side;
+		};
+		
+		private method NotifyAboutMissionBriefing("_mission" as Mission)
+		{
+			private ["_missionBriefing" as MissionBriefing];
+		
+			private _briefingInfoWest = [west] call _mission.GetBriefingInfo;
+			private _briefingInfoEast = [east] call _mission.GetBriefingInfo;
+			private _westPrimaryObjective = [west, ObjectivePrio.Primary] call _mission.GetMissionObjective;
+			private _westSecondaryObjective = [west, ObjectivePrio.Secondary] call _mission.GetMissionObjective;
+			private _westReturnObjective = [west, ObjectivePrio.Return] call _mission.GetMissionObjective;
+			private _eastPrimaryObjective = [east, ObjectivePrio.Primary] call _mission.GetMissionObjective;
+			private _eastSecondaryObjective = [east, ObjectivePrio.Secondary] call _mission.GetMissionObjective;
+			private _eastReturnObjective = [east, ObjectivePrio.Return] call _mission.GetMissionObjective;
+
+			_missionBriefing = [_mission.Name, _briefingInfoWest, _westPrimaryObjective, _westSecondaryObjective, _westReturnObjective, _briefingInfoEast, _eastPrimaryObjective, _eastSecondaryObjective, _eastReturnObjective] new MissionBriefing;
+
+			var _serverTime = call Functions.GetMissionTime;
+
+			[_serverTime] call PublicVariableHandler.BroadcastBriefingEndTime;
+
+			[_missionBriefing] call PublicVariableHandler.BroadcastMissionBriefing;
+			["ClientEventReciever.OnMissionBriefing", [_missionBriefing, _serverTime]] call Remote.Invoke;
+			
+			_mObjectiveChangeCollection = new ObjectiveChangeCollection;
+			[_mObjectiveChangeCollection] call PublicVariableHandler.BroadcastObjectiveChangeCollection;
+		};
+
+		public method InsertionEventArgs InsertGroup("_side" as Side, "_position" as Array)
+		{
+			private "_e" as InsertionEventArgs;
+			_e = classNull;
+			
+			var _group = grpNull;
+			
+			{
+				if (side group _x == _side) then {
+					_group = group _x;
+				};
+			} foreach (call _mMissionUnitsHandler.GetSwitchableUnits);
+			
+			if (_side == west) then
+			{
+				if (!_mWestHasInserted) then
+				{
+					if (!isNull _group) then {
+						_e = [_group, _position] call _mCurrentMission.InsertGroup;
+						_mWestlyUnits = units _group;
+					};
+					
+					_mWestHasInserted = true;
+					[true] call PublicVariableHandler.BroadcastWestHasInserted;
+					[_position] call PublicVariableHandler.BroadcastWestInsertionPos;
+					[_mWestlyUnits] call PublicVariableHandler.BroadcastInsertedWestlyUnits;
+				};
+			}
+			else // East
+			{
+				if (!_mEastHasInserted) then
+				{
+					if (!isNull _group) then {
+						_e = [_group, _position] call _mCurrentMission.InsertGroup;
+						_mEastlyUnits = units _group;
+					};
+					
+					_mEastHasInserted = true;
+					[true] call PublicVariableHandler.BroadcastEastHasInserted;
+					[_position] call PublicVariableHandler.BroadcastEastInsertionPos;
+					[_mEastlyUnits] call PublicVariableHandler.BroadcastInsertedEastlyUnits;
+				};
+			};
+			
+			return _e;
+		};
+		
+		public method EndCurrentMission()
+		{
+			if (!isNull _mCurrentMission) then {
+				call _mCurrentMission.Cancel;
+			};
+		};
+		
+		public method ForceNextMission()
+		{
+			_mForceNextMission = true;
+		};
+		
+		public method OnAction("_serverActionId" as Scalar, "_target" as Object, "_caller" as Object)
+		{
+			[_serverActionId, _target, _caller] call _mCurrentMission.OnAction;
+		};
+		
+		private method Boolean AllUnitsAreDead()
+		{
+			if ((count _mEastlyUnits) + (count _mWestlyUnits) == 0) then {
+				return false;
+			};
+		
+			{
+				if (alive _x) then {
+					return false;
+				};
+			} foreach _mWestlyUnits as Object;
+			
+			{
+				if (alive _x) then {
+					return false;
+				};
+			} foreach _mEastlyUnits as Object;
+			
+			return true;
+		};
+		
+		private method CheckAndNotifyObjectives("_mission" as Mission)
+		{
+			private ["_state" as ObjectiveState];
+			
+			// West
+			
+			if (!_mWestPrimaryObjectiveCompleted) then {
+				_state = [west, ObjectivePrio.Primary] call _mission.CheckObjectiveState;
+				
+				if (_state != ObjectiveState.None) then
+				{
+					[west, ObjectivePrio.Primary, _state] call _mObjectiveChangeCollection.AddObjectiveChange;
+					[_mObjectiveChangeCollection] call PublicVariableHandler.BroadcastObjectiveChangeCollection;
+					["ClientEventReciever.OnTaskStateChanged", [west, ObjectivePrio.Primary, _state]] call Remote.Invoke;
+					_mWestPrimaryObjectiveCompleted = true;
+				};
+			};
+		
+			if (!_mWestSecondaryObjectiveCompleted) then
+			{
+				_state = [west, ObjectivePrio.Secondary] call _mission.CheckObjectiveState;
+				
+				if (_state != ObjectiveState.None) then {
+					[west, ObjectivePrio.Secondary, _state] call _mObjectiveChangeCollection.AddObjectiveChange;
+					[_mObjectiveChangeCollection] call PublicVariableHandler.BroadcastObjectiveChangeCollection;
+					["ClientEventReciever.OnTaskStateChanged", [west, ObjectivePrio.Secondary, _state]] call Remote.Invoke;
+					_mWestSecondaryObjectiveCompleted = true;
+				};
+			};
+		
+			if (!_mWestReturnObjectiveCompleted) then
+			{
+				_state = [west, ObjectivePrio.Return] call _mission.CheckObjectiveState;
+				
+				if (_state == ObjectiveState.Succeeded) then {
+					[true] call PublicVariableHandler.BroadcastWestHasReturned;
+				};
+				
+				if (_state != ObjectiveState.None) then
+				{
+					[west, ObjectivePrio.Return, _state] call _mObjectiveChangeCollection.AddObjectiveChange;
+					[_mObjectiveChangeCollection] call PublicVariableHandler.BroadcastObjectiveChangeCollection;
+					["ClientEventReciever.OnTaskStateChanged", [west, ObjectivePrio.Return, _state]] call Remote.Invoke;
+					_mWestReturnObjectiveCompleted = true;
+				};
+			};
+			
+			// East
+			
+			if (!_mEastPrimaryObjectiveCompleted) then
+			{
+				_state = [east, ObjectivePrio.Primary] call _mission.CheckObjectiveState;
+				
+				if (_state != ObjectiveState.None) then {
+					[east, ObjectivePrio.Primary, _state] call _mObjectiveChangeCollection.AddObjectiveChange;
+					[_mObjectiveChangeCollection] call PublicVariableHandler.BroadcastObjectiveChangeCollection;
+					["ClientEventReciever.OnTaskStateChanged", [east, ObjectivePrio.Primary, _state]] call Remote.Invoke;
+					_mEastPrimaryObjectiveCompleted = true;
+				};
+			};
+		
+			if (!_mEastSecondaryObjectiveCompleted) then
+			{
+				_state = [east, ObjectivePrio.Secondary] call _mission.CheckObjectiveState;
+				
+				if (_state != ObjectiveState.None) then {
+					[east, ObjectivePrio.Secondary, _state] call _mObjectiveChangeCollection.AddObjectiveChange;
+					[_mObjectiveChangeCollection] call PublicVariableHandler.BroadcastObjectiveChangeCollection;
+					["ClientEventReciever.OnTaskStateChanged", [east, ObjectivePrio.Secondary, _state]] call Remote.Invoke;
+					_mEastSecondaryObjectiveCompleted = true;
+				};
+			};
+		
+			if (!_mEastReturnObjectiveCompleted) then
+			{
+				_state = [east, ObjectivePrio.Return] call _mission.CheckObjectiveState;
+				
+				if (_state == ObjectiveState.Succeeded) then {
+					[true] call PublicVariableHandler.BroadcastEastHasReturned;
+				};
+				
+				if (_state != ObjectiveState.None) then {
+					[east, ObjectivePrio.Return, _state] call _mObjectiveChangeCollection.AddObjectiveChange;
+					[_mObjectiveChangeCollection] call PublicVariableHandler.BroadcastObjectiveChangeCollection;
+					["ClientEventReciever.OnTaskStateChanged", [east, ObjectivePrio.Return, _state]] call Remote.Invoke;
+					_mEastReturnObjectiveCompleted = true;
+				};
+			};
+		};
+		
+		// Deletes all matching items from an array by modifying the original array.
+		// _array (Array): The array to delete stuff from.
+		// _item (Any): The item that should be deleted.
+		// Returns (Scalar): Number of deleted items.
+		private static method Scalar DeleteItemInArray("_array" as Array, "_item" as Any)
+		{
+			var _removedSomething = true;
+			var _removedItemsCount = 0;
+			
+			diag_log ("DELETEITEM: Before removal of " + str _item + ": " + str _array);
+			
+			while { _removedSomething } do
+			{
+				var _index = -1;
+				_removedSomething = false;
+			
+				for "_i" from 0 to count _array - 1 do {
+					scopeName "for_loop";
+			
+					if (_array # _i == _item) then {
+						_index = _i;
+						breakOut "for_loop";
+					};
+				};
+				
+				if (_index >= 0) then {
+					_array deleteAt _index;
+					_removedItemsCount = _removedItemsCount + 1;
+					_removedSomething = true;
+				};
+			};
+			
+			diag_log ("DELETEITEM: After removal of " + str _item + ": " + str _array);
+			
+			return _removedItemsCount;
+		};
+		
+		private static method Array CloneArray("_array" as Array)
+		{
+			var _clonedArray = [];
+		
+			{
+				_clonedArray pushBack _x;
+			} foreach _array;
+			
+			return _clonedArray;
+		};
+		
+		private method SaveHistoryTokens("_mission" as Mission)
+		{
+			private ["_gainedTokensWest" as Array, "_lostTokensWest" as Array, "_gainedTokensEast" as Array, "_lostTokensEast" as Array];
+		
+			var _earlierGainedTokensWest = _mCampaign.GainedTokensWest;
+			var _earlierGainedTokensEast = _mCampaign.GainedTokensEast;
+			var _earlierLostTokensWest = _mCampaign.LostTokensWest;
+			var _earlierLostTokensEast = _mCampaign.LostTokensEast;
+			
+			if (([MissionSide.Acting] call _mission.GetActualSide) == west) then
+			{
+				_gainedTokensWest = _mission.GainedTokensActing - _earlierGainedTokensWest;
+				_lostTokensWest = _mission.LostTokensActing - _earlierLostTokensWest;
+				_gainedTokensEast = _mission.GainedTokensOpposing - _earlierGainedTokensEast;
+				_lostTokensEast = _mission.LostTokensOpposing - _earlierLostTokensEast;
+			}
+			else {
+				_gainedTokensWest = _mission.GainedTokensOpposing - _earlierGainedTokensWest;
+				_lostTokensWest = _mission.LostTokensOpposing - _earlierLostTokensWest;
+				_gainedTokensEast = _mission.GainedTokensActing - _earlierGainedTokensEast;
+				_lostTokensEast = _mission.LostTokensActing - _earlierLostTokensEast;
+			};
+			
+			diag_log ("TOKENS1: GainedTokensWest: " + str _gainedTokensWest);
+			diag_log ("TOKENS1: GainedTokensEast: " + str _gainedTokensEast);
+			diag_log ("TOKENS1: LostTokensWest: " + str _lostTokensWest);
+			diag_log ("TOKENS1: LostTokensEast: " + str _lostTokensEast);
+
+			diag_log ("TOKENS1: EarlierGainedTokensWest: " + str _earlierGainedTokensWest);
+			diag_log ("TOKENS1: EarlierGainedTokensEast: " + str _earlierGainedTokensEast);
+			diag_log ("TOKENS1: EarlierLostTokensWest: " + str _earlierLostTokensWest);
+			diag_log ("TOKENS1: EarlierLostTokensEast: " + str _earlierLostTokensEast);
+
+			// If west have lost tokens in the mission, remove them from their gained tokens, and add them to lost tokens
+			{
+				if (_x in _earlierGainedTokensWest) then {
+					[_earlierGainedTokensWest, _x] call _self.DeleteItemInArray;
+				};
+				
+				if (!(_x in _earlierLostTokensWest)) then {
+					_earlierLostTokensWest pushBack _x;
+				};
+			} foreach _lostTokensWest as String;
+
+			// If west have gained tokens in the mission, remove them from their lost tokens, and add them to gained tokens
+			{
+				if (_x in _earlierLostTokensWest) then {
+					[_earlierLostTokensWest, _x] call _self.DeleteItemInArray;
+				};
+				
+				if (!(_x in _earlierGainedTokensWest)) then {
+					_earlierGainedTokensWest pushBack _x;
+				};
+			} foreach _gainedTokensWest as String;
+			
+			// If east have lost tokens in the mission, remove them from their gained tokens, and add them to lost tokens
+			{
+				if (_x in _earlierGainedTokensEast) then {
+					[_earlierGainedTokensEast, _x] call _self.DeleteItemInArray;
+				};
+				
+				if (!(_x in _earlierLostTokensEast)) then {
+					_earlierLostTokensEast pushBack _x;
+				};
+			} foreach _lostTokensEast as String;
+			
+			// If east have gained tokens in the mission, remove them from their lost tokens, and add them to gained tokens
+			{
+				if (_x in _earlierLostTokensEast) then {
+					[_earlierLostTokensEast, _x] call _self.DeleteItemInArray;
+				};
+				
+				if (!(_x in _earlierGainedTokensEast)) then {
+					_earlierGainedTokensEast pushBack _x;
+				};
+			} foreach _gainedTokensEast as String;
+			
+			diag_log ("TOKENS2: GainedTokensWest: " + str _gainedTokensWest);
+			diag_log ("TOKENS2: GainedTokensEast: " + str _gainedTokensEast);
+			diag_log ("TOKENS2: LostTokensWest: " + str _lostTokensWest);
+			diag_log ("TOKENS2: LostTokensEast: " + str _lostTokensEast);
+
+			diag_log ("TOKENS2: EarlierGainedTokensWest: " + str _earlierGainedTokensWest);
+			diag_log ("TOKENS2: EarlierGainedTokensEast: " + str _earlierGainedTokensEast);
+			diag_log ("TOKENS2: EarlierLostTokensWest: " + str _earlierLostTokensWest);
+			diag_log ("TOKENS2: EarlierLostTokensEast: " + str _earlierLostTokensEast);
+		};
+		
+		private method PrepareMission("_mission" as Mission)
+		{
+			var _westGroup = grpNull;
+			var _eastGroup = grpNull;
+			
+			{
+				if (side group _x == west) then {
+					_westGroup = group _x;
+				};
+				if (side group _x == east) then {
+					_eastGroup = group _x;
+				};
+			} foreach (call _mMissionUnitsHandler.GetSwitchableUnits);
+			
+			if (([MissionSide.Acting] call _mission.GetActualSide) == west) then {
+				[_mBaseMarkersConfig, _mServerActionHandler, _westGroup, _eastGroup, [_mCampaign.GainedTokensWest] call _self.CloneArray, [_mCampaign.LostTokensWest] call _self.CloneArray, [_mCampaign.GainedTokensEast] call _self.CloneArray, [_mCampaign.LostTokensEast] call _self.CloneArray, new Campaigns.Network.Remote] call _mission.Prepare;
+			}
+			else {
+				[_mBaseMarkersConfig, _mServerActionHandler, _westGroup, _eastGroup, [_mCampaign.GainedTokensEast] call _self.CloneArray, [_mCampaign.LostTokensEast] call _self.CloneArray, [_mCampaign.GainedTokensWest] call _self.CloneArray, [_mCampaign.LostTokensWest] call _self.CloneArray, new Campaigns.Network.Remote] call _mission.Prepare;
+			};
+		};
+		
+		private method Boolean MissionTimeIsUp()
+		{
+			if (_mCampaignLimitTime > 0) then
+			{
+				var _tickedTimeSec = floor diag_tickTime;
+				var _campaignEndTimeSec = _mCampaignStartTickTime + _mCampaignLimitTime * 60;
+	
+				return _tickedTimeSec >= _campaignEndTimeSec;
+			};
+			
+			return false;
+		};
+		
+		protected override method Run()
+		{
+			private ["_missionResultWest" as MissionResultInfo, "_missionResultEast" as MissionResultInfo];
+			
+			private _accumulatedScoreWest = 0;
+			private _accumulatedScoreEast = 0;
+			
+			sleep 3;
+			
+			["ClientEventReciever.OnCampaignStart", []] call Remote.Invoke;
+			_mCampaignStartTickTime = floor diag_tickTime;
+			
+			// Run each mission
+			
+			_mCurrentMission = call _mCampaign.GetNextMissionToPlay;
+			_mMissionResults = [];
+			private _isFirstMission = true;
+			
+			while {!isNull _mCurrentMission} do
+			{
+				_mEastHasInserted = false;
+				_mWestHasInserted = false;
+				_mEastlyUnits = [];
+				_mWestlyUnits = [];
+				_mWestPrimaryObjectiveCompleted = false;
+				_mWestSecondaryObjectiveCompleted = false;
+				_mWestReturnObjectiveCompleted = false;
+				_mEastPrimaryObjectiveCompleted = false;
+				_mEastSecondaryObjectiveCompleted = false;
+				_mEastReturnObjectiveCompleted = false;
+				
+				[true] call PublicVariableHandler.BroadcastMissionHasStarted;
+				["ClientEventReciever.OnMissionStarting", [_isFirstMission]] call Remote.Invoke;
+				
+				// Create AI units
+				private _westlyGroup = [west] call _mMissionUnitsHandler.GetGroupBySide;
+				private _westlyAi = [west] call _mMissionUnitsHandler.GetAiUnitsBySide;
+				private _westRespawnPos = getMarkerPos ([west, BaseMarker.Respawn] call _mBaseMarkersConfig.GetMarkerName);
+				
+				for "_i" from (count _westlyAi) to _mAiUnitsWestCount - 1 do
+				{
+					private _aiUnit = _westlyGroup createUnit ["B_Soldier_F", _westRespawnPos, [], 0, "NONE"];
+					[_aiUnit] call _mMissionUnitsHandler.AddAiUnit;
+				};
+				
+				private _eastlyGroup = [east] call _mMissionUnitsHandler.GetGroupBySide;
+				private _eastlyAi = [east] call _mMissionUnitsHandler.GetAiUnitsBySide;
+				private _eastRespawnPos = getMarkerPos ([east, BaseMarker.Respawn] call _mBaseMarkersConfig.GetMarkerName);
+				
+				for "_i" from (count _eastlyAi) to _mAiUnitsEastCount - 1 do
+				{
+					private _aiUnit = _eastlyGroup createUnit ["O_Soldier_F", _eastRespawnPos, [], 0, "NONE"];
+					[_aiUnit] call _mMissionUnitsHandler.AddAiUnit;
+				};
+				
+				[_mCurrentMission] call _self.PrepareMission;
+				
+				[_mCurrentMission] call _self.NotifyClientsAboutMissionStart;
+				[_mCurrentMission] call _self.NotifyAboutMissionBriefing;
+				
+				[_mMissionMarkersInfo] call _self.InsertSideWithNoPlayers;
+				
+				var _remainingTime = _mCurrentMission.RemainingTime;
+				var _startTime = call Functions.GetMissionTime;
+				
+				var _endTime = _startTime + _mCurrentMission.MissionTimeLimit * 60;
+				
+				call _mCurrentMission.RunAsync;
+				["ClientEventReciever.OnMissionTimeTick", [_mCurrentMission.MissionTimeLimit]] call Remote.Invoke;
+				
+				while { _mCurrentMission.IsRunning } do
+				{
+					var _elapsedTimeInMin = floor (((call Functions.GetMissionTime) - _startTime) / 60);
+					
+					if (_elapsedTimeInMin != _mCurrentMission.MissionTimeElapsed) then
+					{
+						[_elapsedTimeInMin] call _mCurrentMission.SetTimeElapsed;
+						["ClientEventReciever.OnMissionTimeTick", [_mCurrentMission.RemainingTime]] call Remote.Invoke;
+					};
+
+					// If time is up, cancel the mission.
+					
+					var _serverTime = call Functions.GetMissionTime;
+					
+					if (_serverTime > _endTime) then {
+						[_mCurrentMission.MissionTimeElapsed] call _mCurrentMission.SetTimeElapsed;
+						call _mCurrentMission.Cancel;
+					};
+					
+					// If all players are dead, cancel the mission.
+					
+					if (call _self.AllUnitsAreDead) then
+					{
+						call _mCurrentMission.Cancel;
+					};
+					
+					sleep 1;
+					
+					_isFirstMission = false;
+					[_mCurrentMission] call _self.CheckAndNotifyObjectives;
+				};
+				
+				// Check objectives one last time, in case they are dependent of each other.
+				[_mCurrentMission] call _self.CheckAndNotifyObjectives;
+				
+				// Take care of eventual gained and lost tokens
+				[_mCurrentMission] call _self.SaveHistoryTokens;
+				
+				// Tell players that mission has ended and beam them back to base.
+				_missionResultWest = [west] call _mCurrentMission.GetMissionResult;
+				_missionResultEast = [east] call _mCurrentMission.GetMissionResult;
+				
+				_accumulatedScoreWest = _accumulatedScoreWest + _missionResultWest.Score;
+				_accumulatedScoreEast = _accumulatedScoreEast + _missionResultEast.Score;
+				
+				[false] call PublicVariableHandler.BroadcastMissionHasStarted;
+				["ClientEventReciever.OnMissionEnding", []] call Remote.Invoke;
+				
+				[false] call PublicVariableHandler.BroadcastWestHasInserted;
+				[false] call PublicVariableHandler.BroadcastEastHasInserted;
+				[[]] call PublicVariableHandler.BroadcastInsertedWestlyUnits;
+				[[]] call PublicVariableHandler.BroadcastInsertedEastlyUnits;
+				[false] call PublicVariableHandler.BroadcastWestHasReturned;
+				[false] call PublicVariableHandler.BroadcastEastHasReturned;
+				
+				sleep 2;
+				
+				call _mCurrentMission.Dispose;
+				
+				var _nextMission = call _mCampaign.GetNextMissionToPlay;
+				var _isLastMission = isNull _nextMission;
+				
+				if (call _self.MissionTimeIsUp) then {
+					_nextMission = classNull;
+					_isLastMission = true;
+				};
+				
+				var _missionResult = [_mCurrentMission.Name, _missionResultWest, _missionResultEast, _accumulatedScoreWest, _accumulatedScoreEast] new MissionResult;
+				
+				_mMissionResults pushBack _missionResult;				
+				[_mMissionResults] call PublicVariableHandler.BroadcastMissionResultArray;
+				
+				["ClientEventReciever.OnMissionEnded", [_missionResult, _isLastMission]] call Remote.Invoke;
+				
+				var _time = call Functions.GetMissionTime;
+				var _nextMissionStartTime = _time + _mTimeBetweenMissions;
+				
+				sleep 0.1;
+				
+				if (!isNull _nextMission) then {
+					[_nextMissionStartTime] call PublicVariableHandler.BroadcastNextMissionStartTime;
+					waitUntil { _mForceNextMission || (call Functions.GetMissionTime) > _nextMissionStartTime };
+					
+					if (_mForceNextMission) then {
+						["ClientEventReciever.OnForceNextMission", []] call Remote.Invoke;
+						sleep 2;
+					};
+					
+					_mForceNextMission = false;
+				};
+				
+				if (call _self.MissionTimeIsUp) then {
+					_mCurrentMission = classNull;
+				}
+				else {
+					_mCurrentMission = _nextMission;
+				};
+			};
+
+			["ClientEventReciever.OnCampaignEnded", [_accumulatedScoreWest, _accumulatedScoreEast]] call Remote.Invoke;
+			
+			call _base.Run;
+		};
+	};
+};

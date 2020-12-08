@@ -1,0 +1,128 @@
+/*
+ * Name:	Marker
+ * Date:	2020-09-28
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Represents a map marker to be used by a mission.
+ */
+namespace Tvtcf.Common
+{
+	public class Marker
+	{
+		#region Initializers
+		
+		// Creates a public icon marker.
+		public static method Marker NewIconMarker(
+			"_name" as String,
+			"_position" as Array, 
+			["_type" as String, "hd_dot"], 
+			["_color" as String, "ColorBlack"],
+			["_text" as String, ""],
+			["_alpha" as Scalar, 0.4])
+		{			
+			return ([_name, _position, "ICON", [1, 1], 0, _type, _color, "Solid", _text, _alpha] new Marker);
+		};
+	
+		// Creates a public shape marker.
+		public static method Marker NewShapeMarker(
+			"_name" as String,
+			"_position" as Array,
+			["_shape" as String, "RECTANGLE"],
+			["_size" as Array, [50, 50]],
+			["_direction" as Scalar, 0],
+			["_color" as String, "ColorBlack"],
+			["_brush" as String, "Solid"],
+			["_alpha" as Scalar, 0.4])
+		{			
+			return ([_name, _position, _shape, _size, _direction, "hd_dot", _color, _brush, "", _alpha] new Marker);
+		};
+
+		#endregion
+
+		#region Constructor
+
+		// Creates a Marker object.
+		// _name (String): The marker name of the marker.
+		// _position (Array): The marker's position.
+		// _shape (String): The shape of the marker ("RECTANGLE" or "ICON").
+		// _size (Array): The size of the marker. E.g. [1, 1].
+		// _direction (Scalar): The marker's direction.
+		// _type (String): The marker type (only relevant if _shape is "ICON").
+		// _color (String): The marker's color. Applies to Arma 3's colors, e.g. "ColorBlack".
+		// _brush (String): The marker's brush (e.g. "Solid").
+		// _text (String): The marker's text.
+		// _alpha (Scalar): The marker's alpha.
+		public constructor(
+			"_name" as String,
+			"_position" as Array,
+			["_shape" as String, "ICON"],
+			["_size" as Array, [1, 1]],
+			["_direction" as Scalar, 0],
+			["_type" as String, "hd_dot"],
+			["_color" as String, "ColorBlack"],
+			["_brush" as String, "Solid"],
+			["_text" as String, ""],
+			["_alpha" as Scalar, 0.4])
+		{
+			if (isNil "Sqx_Markers_Marker_CurrentId") then {
+				Tvtcf_Common_Marker_CurrentId = 1;
+			};
+			
+			// Generate a name if not an explicit name will be used.
+			if (_name == "") then {
+				_name = "Tvtcf_Common_Marker" + str Tvtcf_Common_Marker_CurrentId;
+				Tvtcf_Common_Marker_CurrentId = Tvtcf_Common_Marker_CurrentId + 1;
+			};
+			
+			_self.Name = _name;
+			_self.Position = _position;
+			
+			_self.Shape = _shape;
+			_self.Size = _size;
+			_self.Direction = _direction;
+			_self.Type = _type;
+			_self.Color = _color;
+			_self.Brush = _brush;
+			_self.Text = _text;
+			_self.Alpha = _alpha;
+		};
+		
+		#endregion
+		
+		#region Properties
+		
+		// Gets the marker name that is assigned.
+		public property String Name { get; set; };
+		
+		// Gets the marker's position.
+		public property Array Position { get; set; };
+		
+		// Gets the marker's shape.
+		public property String Shape { get; set; };
+		
+		// Gets the marker's size.
+		public property Array Size { get; set; };
+		
+		// Gets the marker's direction.
+		public property Scalar Direction { get; set; };
+		
+		// Gets the marker's type.
+		public property String Type { get; set; };
+		
+		// Gets the marker's color.
+		public property String Color { get; set; };
+		
+		// Gets the marker's brush.
+		public property String Brush { get; set; };
+		
+		// Gets the marker's text.
+		public property String Text { get; set; };
+		
+		// Gets the marker's alpha.
+		public property Scalar Alpha { get; set; };
+
+		#endregion
+	};
+};

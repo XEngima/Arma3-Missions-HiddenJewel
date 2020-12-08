@@ -1,0 +1,47 @@
+/*
+ * Name:	ExtractionSymbolHandler
+ * Date:	2020-09-13
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles the extraction symbol for missions with automatic extraction objective.
+ */
+namespace Tvtcf.Client
+{
+	public class ExtractionSymbolHandler
+	{
+		private fields ["_mSymbolClassName" as String, "_mSymbol" as Object];
+	
+		// Creates a ExtractionSymbolHandler object.
+		public constructor()
+		{
+			_mSymbolClassName = "Sign_Arrow_Large_Blue_F";
+			_mSymbol = objNull;
+		};
+		
+		public method CreateSymbol("_position" as Array)
+		{
+			if (!isNull _mSymbol) then {
+				call _self.DeleteSymbol;
+			};
+			
+			_mSymbol = _mSymbolClassName createVehicleLocal _position;
+			
+			if (surfaceIsWater _position) then {
+				_mSymbol setPosASL [_position select 0, _position select 1, 0.5];
+			}
+			else {
+				_mSymbol setPosATL [_position select 0, _position select 1, 0.5];
+			};
+		};
+		
+		public method DeleteSymbol()
+		{
+			if (!isNull _mSymbol) then {
+				deleteVehicle _mSymbol;
+				_mSymbol = objNull;
+			};
+		};
+	};
+};

@@ -1,0 +1,45 @@
+/*
+ * Name:	BaseInsertionService
+ * Date:	2020-09-18
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Monitors if the group is moving outside the base's perimiters, and performs an insertion if they do.
+ */
+
+using Sqx.Services;
+using Tvtcf.Common;
+using Tvtcf.Communication;
+
+namespace Tvtcf.Client
+{
+	public class BaseInsertionService : Service
+	{
+		private fields ["_mBaseMarkersConfig" as IBaseMarkersConfig];
+		
+		public constructor("_baseMarkersConfig" as IBaseMarkersConfig)
+		{
+			call _base.Constructor;
+			_mBaseMarkersConfig = _baseMarkersConfig;
+		};
+		
+		protected override method Run()
+		{
+			while { !_self.IsCancelling } do
+			{
+				var _respawnMarker = [playerSide, BaseMarker.Respawn] call _mBaseMarkersConfig.GetMarkerName;
+				var _basePos = getMarkerPos _respawnMarker;
+				
+				if (player distance2D _basePos > 300) then {
+					["ServerEventReciever.OnPlayerPerformingInsertion", [playerSide, _basePos, false]] call Remote.Invoke;
+					call _self.Cancel;
+				};
+				
+				sleep 0.2;
+			};
+			
+			call _base.Run;
+		};
+	};
+};

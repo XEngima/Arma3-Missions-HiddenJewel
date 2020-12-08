@@ -1,0 +1,28 @@
+/*
+ * Name:	BaseMarkerInfo
+ * Date:	2020-07-03
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Contains information about a marker that is in a base.
+ */
+namespace Tvtcf.Common
+{
+	public class BaseMarkerInfo
+	{
+		// Creates a BaseMarkerInfo object.
+		public constructor("_side" as Side, "_baseMarker" as BaseMarker, "_name" as String)
+		{
+			_self.Side = _side;
+			_self.BaseMarker = _baseMarker;
+			_self.Name = _name;
+		};
+		
+		public property Side Side { get; private set; };
+		
+		public property BaseMarker BaseMarker { get; private set; };
+		
+		public property String Name { get; private set; };
+	};
+};

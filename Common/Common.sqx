@@ -1,0 +1,41 @@
+call compile preprocessFileLineNumbers "Common\Enums\ObjectiveState.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\CommonObjects.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\CommonEventHandlers.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Configs\BaseMarkersConfig.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Handlers\MissionParametersHandler.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Handlers\Functions.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\BaseMarkerInfo.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\DictionaryItem.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\MissionMarkersInfo.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\MarkerInfo.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\MissionResultInfo.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\MissionResult.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\MissionObjective.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\MissionBriefing.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\ObjectiveChange.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\ObjectiveChangeCollection.sqx";
+call compile preprocessFileLineNumbers "Common\Classes\Objects\Marker.sqx";
+
+using Tvtcf.Common;
+using Tvtcf.Common.Statics;
+
+namespace Mission
+{
+	public class Common
+	{
+		// Initializes the common objects on clients and server.
+		public static method Initialize()
+		{
+			// Silence the AI radio chatter.
+			0 fadeRadio 0;
+			//enableRadio false;
+			enableSentences false;
+			
+			// Bootstrap the common singletons.
+			call CommonObjects.Init;
+			
+			// Initialize all server eventhandlers.
+			call CommonEventHandlers.Init;
+		};
+	};
+};

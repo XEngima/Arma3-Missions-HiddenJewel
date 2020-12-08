@@ -1,0 +1,40 @@
+/*
+ * Name:	ObjectiveChangeCollection
+ * Date:	2020-09-23
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Contains objective changes that takes place during a mission.
+ */
+namespace Tvtcf.Common
+{
+	public class ObjectiveChangeCollection
+	{
+		private fields ["_mObjectiveChange" as Array /* of ObjectiveChange */];
+		
+		// Creates a ObjectiveChangeCollection object.
+		public constructor()
+		{
+			_mObjectiveChange = [];
+		};
+		
+		public method AddObjectiveChange("_side" as Side, "_prio" as ObjectivePrio, "_state" as ObjectiveState)
+		{
+			_mObjectiveChange pushBack [_side, _prio, _state] new ObjectiveChange;
+		};
+		
+		public method Array GetObjectiveChangesBySide("_side" as Side)
+		{
+			var _changes = [];
+			
+			{
+				if (_x.Side == _side) then {
+					_changes pushBack _x;
+				};
+			} foreach _mObjectiveChange as ObjectiveChange;
+			
+			return _changes;
+		};
+	};
+};

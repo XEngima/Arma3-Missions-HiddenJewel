@@ -1,0 +1,73 @@
+/*
+ * Name:	MissionParametersHandler
+ * Date:	2019-03-11
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handlers all about admin selectable mission parameters.
+ */
+namespace Tvtcf.Common
+{
+	public class MissionParametersHandler
+	{
+		// Creates a MissionParametersHandler object.
+		public constructor()
+		{
+			call _self.SetDefaultValuesIfSinglePlayer;
+
+			_self.EnableServerAdminOptions = (paramsArray select 0) == 1;
+			_self.MandatoryPrepareTime = (paramsArray select 1);
+			_self.TimeBetweenMissions = (paramsArray select 2);
+			_self.CampaignLimitTime = (paramsArray select 3);
+			_self.CampaignMode = (paramsArray select 4);
+			_self.AiWestFrequency = (paramsArray select 5);
+			_self.AiEastFrequency = (paramsArray select 6);
+		};
+		
+		public property Boolean EnableServerAdminOptions { get; private set; };
+		
+		public property Scalar MandatoryPrepareTime { get; private set; };
+		
+		public property Scalar TimeBetweenMissions { get; private set; };
+		
+		public property Scalar CampaignLimitTime { get; private set; };
+		
+		public property CampaignMode CampaignMode { get; private set; };
+		
+		public property Scalar AiWestFrequency { get; private set; };
+		
+		public property Scalar AiEastFrequency { get; private set; };
+		
+		public method SetDefaultValuesIfSinglePlayer()
+		{
+		    if (isNil "paramsArray") then
+		    {
+		        private ["_c" as Scalar, "_i" as Scalar, "_paramName" as String];
+		        
+		        paramsArray = [];
+		        
+		        if (isClass (missionConfigFile/"Params")) then
+		        {
+		            _c = count (missionConfigFile/"Params");
+		            
+		            for [{_i = 0}, {_i < _c}, {_i = _i + 1}] do
+		            {
+		                _paramName = configName ((missionConfigFile >> "Params") select _i);
+		                paramsArray = paramsArray + [getNumber (missionConfigFile >> "Params" >> _paramName >> "default")];
+		            };
+		        };
+		        
+		        _c = count paramsArray;
+		        
+		        if (isNil "param1" && _c > 0) then {
+		        	param1 = paramsArray select 0;
+		        };
+		        
+		        if (isNil "param2" && _c > 1) then {
+		        	param2 = paramsArray select 1;
+		        };
+		    };
+		};
+	};
+};

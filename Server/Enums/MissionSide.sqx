@@ -1,0 +1,17 @@
+/*
+ * Name:	MissionSide
+ * Date:	2020-06-25
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Enum that describes the possible abstracted sides to be used inside mission.
+ */
+namespace Tvtcf.Server
+{
+	public enum MissionSide
+	{
+		Acting,
+		Opposing
+	};
+};

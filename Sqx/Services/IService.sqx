@@ -1,0 +1,26 @@
+/*
+ * Name:	IService
+ * Date:	2019-02-01
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Interface for the service class.
+ */
+namespace Sqx.Services
+{
+	public interface IService
+	{
+		// Gets whether this service is running or not.
+		property Boolean IsRunning { get; };
+
+		// Starts the service in a separate process.
+		// Returns (Handle): The script handle.
+		method Handle RunAsync();
+
+		// Asks the service to stop processing. If supported, script will close as soon as possible, and its IsRunning will be
+		// set to false when that happens.
+		// Returns (Handle): The script handle.
+		method Handle Cancel();
+	};
+};

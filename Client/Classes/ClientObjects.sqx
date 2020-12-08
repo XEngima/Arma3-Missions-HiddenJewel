@@ -1,0 +1,64 @@
+/*
+ * Name:	ClientObjects
+ * Date:	2019-02-01
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Static class that bootstraps all client singletons.
+ */
+
+using Sqx.Services;
+using Tvtcf.Client;
+using Tvtcf.Common;
+using Tvtcf.Common.Statics;
+
+namespace Tvtcf.Client.Statics
+{
+	public class ClientObjects
+	{
+		// Initializes the ClientObjects object.
+		public static method Init()
+		{
+			// [Instantiate client config and handler classes here. By that they are reachable from anywhere]
+			
+			_self.BriefingHandler = new BriefingHandler;
+			_self.TaskHandler = new TaskHandler;
+			_self.MapMarkerHandler = [new BaseMarkersConfig] new MapMarkerHandler;
+			_self.MessageHandler = new ClientMessageHandler;
+			_self.PerformInsertionService = [_self.MessageHandler, _self.MapMarkerHandler] new PerformInsertionService;
+			_self.CameraHandler = [_self.MessageHandler] new CameraHandler;
+			_self.JipService = [_self.MessageHandler] new JipService;
+			_self.ClientMissionActionHandler = new ClientMissionActionHandler;
+			_self.ExtractionSymbolHandler = new ExtractionSymbolHandler;
+			_self.BaseInsertionService = [new BaseMarkersConfig] new BaseInsertionService;
+			_self.WaitingForMissionCounter = [CommonObjects.MissionParametersHandler.TimeBetweenMissions] new WaitingForMissionCounter;
+		};
+		
+		// [Declare client config and handler classes as static properties here]
+		
+		public static property IBriefingHandler BriefingHandler { get; private set; };
+		
+		public static property TaskHandler TaskHandler { get; private set; };
+		
+		public static property IService TaskMonitor { get; private set; };
+		
+		public static property MapMarkerHandler MapMarkerHandler { get; private set; };
+		
+		public static property ClientMessageHandler MessageHandler { get; private set; };
+		
+		public static property PerformInsertionService PerformInsertionService { get; private set; };
+		
+		public static property CameraHandler CameraHandler { get; private set; };
+		
+		public static property JipService JipService { get; private set; };
+		
+		public static property ClientMissionActionHandler ClientMissionActionHandler { get; private set; };
+		
+		public static property ExtractionSymbolHandler ExtractionSymbolHandler { get; private set; };
+		
+		public static property BaseInsertionService BaseInsertionService { get; private set; };
+		
+		public static property WaitingForMissionCounter WaitingForMissionCounter { get; private set; };
+	};
+};

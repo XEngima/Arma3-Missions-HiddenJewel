@@ -1,0 +1,141 @@
+/*
+ * Name:	JipService
+ * Date:	2018-12-25
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * A service that starts up a JIP player.
+ */
+
+using Sqx.Services;
+using Tvtcf.Client.Statics;
+using Tvtcf.Common;
+using Tvtcf.Common.Statics;
+using Tvtcf.Communication;
+
+namespace Tvtcf.Client
+{
+	public class JipService : Service
+	{
+		private fields ["_mClientMessageHandler" as ClientMessageHandler];
+	
+		public constructor("_clientMessageHandler" as ClientMessageHandler)
+		{
+			call _base.Constructor;
+			_mClientMessageHandler = _clientMessageHandler;
+		};
+		
+		protected override method Run()
+		{
+			private ["_missionMarkersInfo" as MissionMarkersInfo];
+			private ["_briefingService" as MissionBriefingService, "_missionBriefing" as MissionBriefing];
+			private ["_missionPrepareCounter" as MissionPrepareCounter];
+			
+			waitUntil { player == player };
+			
+			// Set markers
+			
+			_missionMarkersInfo = call PublicVariableHandler.GetMissionMarkersInfo;
+			if (!isNull _missionMarkersInfo) then {
+				[_missionMarkersInfo] call ClientObjects.MapMarkerHandler.UpdateMarkers;
+			};
+			
+			// Set briefing
+			
+			_missionBriefing = call PublicVariableHandler.GetMissionBriefing;
+			if (!isNull _missionBriefing) then {
+				var _objectiveStates = call PublicVariableHandler.GetObjectiveChangeCollection;
+				_briefingService = [_missionBriefing, ClientObjects.BriefingHandler, ClientObjects.TaskHandler, _objectiveStates, true] new MissionBriefingService;
+				call _briefingService.RunAsync;
+			};
+			
+			// Set historical mission results
+			
+			var _missionResultArray = call PublicVariableHandler.GetMissionResultArray;
+			
+			{
+				[_x] call ClientObjects.BriefingHandler.AddMissionResultToHistory;
+			} foreach _missionResultArray as MissionResult;
+			
+			// Set eventual next mission counter if the campaign is between two missions
+			
+			var _missionHasStarted = call PublicVariableHandler.GetMissionHasStarted;
+			var _nextMissionStartTime = call PublicVariableHandler.GetNextMissionStartTime;
+			var _remainingTime = floor (_nextMissionStartTime - (call Functions.GetMissionTime));
+			
+			if (!_missionHasStarted && _remainingTime > 0) then
+			{
+				[_remainingTime] call ClientObjects.WaitingForMissionCounter.SetRemainingTime;
+				call ClientObjects.WaitingForMissionCounter.RunAsync;
+			};
+			
+			// Set eventual insertion counter
+			
+			if (!isNull _missionMarkersInfo) then
+			{
+				private Array _startMarkers = [playerSide] call _missionMarkersInfo.GetStartMarkersBySide;
+				
+				// Only show mission prepare counter if there are startmarkers defined for the current side in the current mission.
+				
+				if (count _startMarkers > 0) then
+				{
+					// Base Insertion Counter
+					
+					var _hasInserted = false;
+					
+					if (playerSide == west) then {
+						_hasInserted = call PublicVariableHandler.GetWestHasInserted;
+					};
+					if (playerSide == east) then {
+						_hasInserted = call PublicVariableHandler.GetEastHasInserted;
+					};
+					
+					if (!_hasInserted) then {
+						call ClientObjects.BaseInsertionService.RunAsync;
+					};
+
+					// Mission Prepare Counter
+				
+					var _briefingEndTime = call PublicVariableHandler.GetBriefingEndTime;
+					_missionPrepareCounter = [_mClientMessageHandler, _briefingEndTime + CommonObjects.MissionParametersHandler.MandatoryPrepareTime] new MissionPrepareCounter;
+					call _missionPrepareCounter.RunAsync;
+				};
+				
+				
+				// Set eventual extraction marker and symbol, if players have inserted
+				
+				var _extractionPos = [];
+				var _useExtractionMarker = false;
+				
+				if (playerSide == west) then {
+					_extractionPos = call PublicVariableHandler.GetWestInsertionPos;
+					_useExtractionMarker = _missionMarkersInfo.WestUseExtractionMarker;
+				};
+				if (playerSide == east) then {
+					_extractionPos = call PublicVariableHandler.GetEastInsertionPos;
+					_useExtractionMarker = _missionMarkersInfo.EastUseExtractionMarker;
+				};
+				
+				if (_useExtractionMarker) then {
+					[_extractionPos] call ClientObjects.MapMarkerHandler.AddInsertionMarker;
+					[_extractionPos] call ClientObjects.ExtractionSymbolHandler.CreateSymbol;
+				};
+			};
+			
+			// Set camera
+			
+		    sleep 1;
+			call ClientObjects.CameraHandler.UpdateDeathCamera;
+			sleep 0.5;
+			
+	  		cutText ["","BLACK IN", 1];
+		    
+		    call _base.Run;
+		    
+		    // Update Mission Menu
+		    
+			call TvtcfActionMenuHandler.UpdateVisibleOptions;
+		};
+	};
+};

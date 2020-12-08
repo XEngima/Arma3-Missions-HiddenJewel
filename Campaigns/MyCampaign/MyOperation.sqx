@@ -1,0 +1,34 @@
+/*
+ * Name:	MyOperation
+ * Date:	2020-08-05
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * This is my own TvT campaign.
+ */
+
+using Campaigns;
+
+namespace Campaigns.MyCampaign
+{
+	public class MyOperation : Campaign
+	{
+		// Creates a MyOperation object.
+		public constructor()
+		{
+			call _base.Constructor;
+		};
+		
+		protected override method SelectMissions("_missions" as Array /* of Mission */)
+		{
+			_missions pushBack new Intro;
+			
+			// Add more missions to the campaign here. Use the following pattern:
+		
+			//_missions pushBack new FlyMySpy;
+			//_missions pushBack new HuntForTheDead;
+			//...
+		};
+	};
+};

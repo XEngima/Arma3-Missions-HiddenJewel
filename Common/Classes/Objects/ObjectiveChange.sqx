@@ -1,0 +1,28 @@
+/*
+ * Name:	ObjectiveChange
+ * Date:	2020-09-23
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Points out a specific objective that has been set.
+ */
+namespace Tvtcf.Common
+{
+	public class ObjectiveChange
+	{
+		// Creates a ObjectiveChange object.
+		public constructor("_side" as Side, "_prio" as ObjectivePrio, "_state" as ObjectiveState)
+		{
+			_self.Side = _side;
+			_self.Prio = _prio;
+			_self.State = _state;
+		};
+		
+		public property Side Side { get; private set; };
+		
+		public property ObjectivePrio Prio { get; private set; };
+		
+		public property ObjectiveState State { get; private set; };
+	};
+};

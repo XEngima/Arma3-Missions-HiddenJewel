@@ -1,0 +1,43 @@
+/*
+ * Name:	BaseMarkersConfig
+ * Date:	2020-07-03
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Contains information about all markers in the base.
+ */
+namespace Tvtcf.Common
+{
+	public class BaseMarkersConfig : IBaseMarkersConfig
+	{
+		private fields ["_mBaseMarkers" as Array];
+		
+		// Creates a BaseMarkersConfig object.
+		public constructor()
+		{
+			_mBaseMarkers = [
+				[west, BaseMarker.Respawn, "respawn_west"] new BaseMarkerInfo,
+				[west, BaseMarker.AmmoCrate, "base_west_AmmoCrateMarker"] new BaseMarkerInfo,
+				[west, BaseMarker.Naval, "base_west_NavalMarker"] new BaseMarkerInfo,
+				[west, BaseMarker.LandVehicles, "base_west_LandVehicleMarker"] new BaseMarkerInfo,
+				[east, BaseMarker.Respawn, "respawn_east"] new BaseMarkerInfo,
+				[east, BaseMarker.AmmoCrate, "base_east_AmmoCrateMarker"] new BaseMarkerInfo,
+				[east, BaseMarker.Naval, "base_east_NavalMarker"] new BaseMarkerInfo,
+				[east, BaseMarker.LandVehicles, "base_east_LandVehicleMarker"] new BaseMarkerInfo
+			];
+		};
+		
+		public method String GetMarkerName("_side" as Side, "_baseMarker" as BaseMarker)
+		{
+			{
+				if (_x.Side == _side && _x.BaseMarker == _baseMarker) then {
+					return _x.Name;
+				};
+			} foreach _mBaseMarkers as BaseMarkerInfo;
+			
+			return "";
+		};
+	};
+};
+

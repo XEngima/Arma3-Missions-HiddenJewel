@@ -1,0 +1,55 @@
+/*
+ * Name:	ServerEventReciever
+ * Date:	2019-01-31
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Static class that handles all custom events sent from other machines.
+ */
+
+using Tvtcf.Communication;
+using Tvtcf.Common.Statics;
+
+namespace Tvtcf.Server.Statics
+{
+	public class ServerEventReciever
+	{
+		// Called when a player is performing an insertion.
+		// _side (Side): The side to insert.
+		// _position (Array): The position where to insert all players on the side.
+		public static method OnPlayerPerformingInsertion("_side" as Side, "_position" as Array, "_doTeleport" as Boolean)
+		{
+			var _insertionEventArgs = [_side, _position] call ServerObjects.CampaignEngine.InsertGroup;
+			
+			var _switchableUnits = call ServerObjects.MissionUnitsHandler.GetSwitchableUnits;
+			
+			{
+				if (side group _x == _side) then
+				{
+					["ClientEventReciever.OnInsertGroup", [group _x, _insertionEventArgs.Position, _insertionEventArgs.ShowInsertionMarker, _doTeleport]] call Remote.Invoke;
+					return;
+				};
+			} foreach _switchableUnits;
+		};
+		
+		public static method OnPlayerKilled("_player" as Object, "_killer" as Object)
+		{		
+		};
+		
+		public static method OnAction("_serverActionId" as Scalar, "_target" as Object, "_caller" as Object)
+		{
+			[_serverActionId, _target, _caller] call ServerObjects.CampaignEngine.OnAction;
+		};
+		
+		public static method OnEndMission()
+		{
+			call ServerObjects.CampaignEngine.EndCurrentMission;
+		};
+		
+		public static method OnForceNextMission()
+		{
+			call ServerObjects.CampaignEngine.ForceNextMission;
+		};
+	};
+};

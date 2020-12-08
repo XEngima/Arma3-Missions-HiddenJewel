@@ -1,0 +1,59 @@
+/*
+ * Name:    Tutorial
+ * Date:    2017-02-27
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Class that models a tutorial, with a header and text.
+ */
+namespace Tvtcf.Client
+{
+	public class Tutorial
+	{
+        // Creates a Tutorial object.
+        // _type (TutorialType):   The tutorial type. Applies to a value in TutorialType.
+        // _header (String): The tutorial header.
+        // _text (String):   The tutorial text.
+        public constructor("_type" as TutorialType, "_header" as String, "_text" as String) {
+        	_self.Type = _type;
+        	_self.Header = _header;
+        	_self.Text = _text;
+        	_self.IsTurnedOff = false;
+		};
+		
+		// Gets the tutorial type. Applies to a value in TutorialType.
+		public property TutorialType Type { get; private set; };
+		
+		// Gets the tutorial header.
+		public property String Header { get; private set; };
+		
+		// Gets the tutorial text.
+		public property String Text { get; private set; };
+		
+		public method String ToBriefingText()
+		{
+			return [_self.Text, "\n", "<br />"] call _self.StringReplace;
+		};
+		
+		// Gets whether the tutorial is turned off or not.
+		public property Boolean IsTurnedOff { get; set; };
+		
+		private method String StringReplace("_str" as String, "_find" as String, "_replace" as String)
+		{
+		    private _return = "";
+		    private _len = count _find;    
+		    private _pos = _str find _find;
+		
+		    while {(_pos != -1) && (count _str > 0)} do
+		    {
+		        _return = _return + (_str select [0, _pos]) + _replace;
+		        
+		        _str = (_str select [_pos+_len]);
+		        _pos = _str find _find;
+		    };
+		    
+		    return _return + _str;
+		};
+	};
+};

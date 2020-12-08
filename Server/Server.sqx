@@ -1,0 +1,38 @@
+call compile preprocessFileLineNumbers "Server\Classes\ServerEventHandlers.sqx";
+call compile preprocessFileLineNumbers "Server\Classes\ServerEventReciever.sqx";
+call compile preprocessFileLineNumbers "Server\Classes\ServerObjects.sqx";
+call compile preprocessFileLineNumbers "Server\Classes\Handlers\MissionUnitsHandler.sqx";
+call compile preprocessFileLineNumbers "Server\Classes\Handlers\ServerActionHandler.sqx";
+call compile preprocessFileLineNumbers "Server\Classes\Handlers\CampaignStarter.sqx";
+call compile preprocessFileLineNumbers "Server\Classes\Objects\VehicleSideAlias.sqx";
+call compile preprocessFileLineNumbers "Server\Classes\Objects\MissionSettings.sqx";
+call compile preprocessFileLineNumbers "Server\Classes\Objects\InsertionEventArgs.sqx";
+call compile preprocessFileLineNumbers "Server\Classes\Services\CampaignEngine.sqx";
+
+call compile preprocessFileLineNumbers "Campaigns\Shared\Campaign.sqx";
+call compile preprocessFileLineNumbers "Campaigns\Shared\Mission.sqx";
+call compile preprocessFileLineNumbers "Campaigns\Shared\VehicleDictionary.sqx";
+call compile preprocessFileLineNumbers "Campaigns\Shared\SoldierDictionary.sqx";
+
+using Tvtcf.Common.Statics;
+using Tvtcf.Server;
+using Tvtcf.Server.Statics;
+
+namespace Mission
+{
+	public class Server
+	{
+		// Initializes the server.
+		public static method Initialize()
+		{
+			// Bootstrap the server singletons.
+			call ServerObjects.Init;
+			
+			// Initialize all server eventhandlers.
+			call ServerEventHandlers.Init;
+			
+			// Start the campaign
+			call ServerObjects.CampaignStarter.StartCampaign;
+		};
+	};
+};

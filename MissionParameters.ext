@@ -1,0 +1,65 @@
+class Params
+{
+	class ServerAdminOptions
+	{
+		// paramsArray[0]
+		title="Enable Server Admin Options";
+		values[]={0, 1};
+		texts[]={"Off", "On"};
+		default = 0;
+	};
+	
+	class MandatoryPrepareTime
+	{
+		// paramsArray[1]
+		title="Mandatory Mission Prepare Time";
+		values[]={0, 15, 30, 60, 90, 120};
+		texts[]={"None", "15 seconds", "30 seconds", "60 seconds", "90 seconds", "120 seconds"};
+		default = 0;
+	};
+	
+	class TimeBetweenMissions
+	{
+		// paramsArray[2]
+		title="Time Between Missions";
+		values[]={0, 30, 60, 120, 180, 300, 600};
+		texts[]={"None", "30 seconds", "1 minute", "2 minutes", "3 minutes", "5 minutes", "10 minutes"};
+		default = 60;
+	};
+	
+	class CampaignLimitTime
+	{
+		// paramsArray[3]
+		title="Campaign Time Limit (The current mission will be played until end.)";
+		values[]={0, 60, 90, 120, 150, 180, 210, 240, 270, 300};
+		texts[]={"Play all missions", "1 hour", "1.5 hours", "2 hours", "2.5 hours", "3 hours", "3.5 hours", "4 hours", "4.5 hours", "5 hours"};
+		default = 0;
+	};
+	
+	class CampaignMode
+	{
+		// paramsArray[4]
+		title="Campaign Mode";
+		values[]={1, 2};
+		texts[]={"Follow storyline", "Randomize missions"};
+		default = 1;
+	};
+	
+	class AiWest
+	{
+		// paramsArray[5]
+		title="AI Units West Frequency";
+		values[]={0, 1, 2, 3, 4, 5};
+		texts[]={0, 1, 2, 3, 4, 5};
+		default = 0;
+	};
+	
+	class AiEast
+	{
+		// paramsArray[6]
+		title="AI Units East Frequency";
+		values[]={0, 1, 2, 3, 4, 5};
+		texts[]={0, 1, 2, 3, 4, 5};
+		default = 0;
+	};
+};

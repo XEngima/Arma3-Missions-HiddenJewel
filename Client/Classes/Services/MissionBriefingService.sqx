@@ -1,0 +1,80 @@
+/*
+ * Name:	MissionBriefingService
+ * Date:	2020-08-05
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Plays the briefing service for the player.
+ */
+
+using Sqx.Services;
+using Tvtcf.Common;
+
+namespace Tvtcf.Client
+{
+	public class MissionBriefingService : Service
+	{
+		private fields ["_mMissionBriefing" as MissionBriefing, "_mBriefingHandler" as IBriefingHandler, "_mTaskHandler" as TaskHandler, "_mObjectiveChangeCollection" as ObjectiveChangeCollection, "_mJip" as Boolean];
+	
+		// Creates a MissionBriefingService object.
+		public constructor("_missionBriefing" as MissionBriefing, "_briefingHandler" as IBriefingHandler, "_taskHandler" as TaskHandler, "_objectiveChangeCollection" as ObjectiveChangeCollection, "_jip" as Boolean)
+		{
+			call _base.Constructor;
+			_mMissionBriefing = _missionBriefing;
+			_mBriefingHandler = _briefingHandler;
+			_mTaskHandler = _taskHandler;
+			_mObjectiveChangeCollection = _objectiveChangeCollection;
+			_mJip = _jip;
+		};
+		
+		protected override method Run()
+		{
+			private ["_briefingInfo" as String, "_primaryObjective" as MissionObjective, "_secondaryObjective" as MissionObjective, "_returnObjective" as MissionObjective];
+			
+			if (!_mJip) then {
+				sleep 1;
+			};
+			
+            [_mMissionBriefing.MissionName, str (date select 2) + "/" + str (date select 1) + "/" + str (date select 0) + " " + str (date select 3) + ":00"] spawn BIS_fnc_infoText;
+            
+            if (!_mJip) then {
+            	sleep 2;
+				cutText ["", "BLACK IN", 1];
+				sleep 1;
+            };
+		
+			_briefingInfo = [playerSide] call _mMissionBriefing.GetBriefingInfo;
+			_primaryObjective = [playerSide, ObjectivePrio.Primary] call _mMissionBriefing.GetObjective;
+			_secondaryObjective = [playerSide, ObjectivePrio.Secondary] call _mMissionBriefing.GetObjective;
+			_returnObjective = [playerSide, ObjectivePrio.Return] call _mMissionBriefing.GetObjective;
+			
+			if (_briefingInfo != "") then {
+				[_mMissionBriefing.MissionName, _briefingInfo] call _mBriefingHandler.CreateBriefing;
+			};
+			
+			if (!isNull _primaryObjective) then {
+				[_primaryObjective, ObjectivePrio.Primary, !_mJip] call _mTaskHandler.CreateTask;
+			};
+			
+			if (!isNull _secondaryObjective) then {
+				[_secondaryObjective, ObjectivePrio.Secondary, false] call _mTaskHandler.CreateTask;
+			};
+			
+			if (!isNull _returnObjective) then {
+				[_returnObjective, ObjectivePrio.Return, false] call _mTaskHandler.CreateTask;
+			};
+			
+			if (!isNull _mObjectiveChangeCollection) then
+			{
+				var _objectiveChanges = [playerSide] call _mObjectiveChangeCollection.GetObjectiveChangesBySide;
+				
+				{
+					[_x.Prio, _x.State, false] call _mTaskHandler.SetTaskState;
+				} foreach _objectiveChanges as ObjectiveChange;
+			};
+			
+			call _base.Run;
+		};
+	};
+};

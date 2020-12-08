@@ -1,0 +1,33 @@
+/*
+ * Name:	ClientEventReciever
+ * Date:	2020-10-01
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Static class that handles all remote campaign events sent from the server to client machines (see README.sqx).
+ */
+
+using Tvtcf.Common;
+using Tvtcf.Common.Statics;
+using Tvtcf.Client;
+using Tvtcf.Communication;
+
+namespace Campaigns.Network
+{
+	public class ClientEventReciever
+	{
+		// Add more necessary static event methods below.
+		// All methods in this class are executed when the corresponding event is sent from the server.
+		
+		// Called on all clients when a message need to be shown for players on one side.
+		// _message (String): The message to show.
+		// _showOnSide (Side): The message is shown for all players on this side.
+		public static method OnShowMessage("_message" as String, "_showOnSide" as Side)
+		{
+			if (_showOnSide == playerSide) then {
+				titleText [_message, "PLAIN"];
+			};
+		};
+	};
+};

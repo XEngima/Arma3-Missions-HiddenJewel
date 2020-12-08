@@ -1,0 +1,44 @@
+/*
+ * Name:	DebriefingDialog
+ * Date:	2020-09-24
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Models the debriefing dialog that is shown after each mission.
+ */
+namespace Tvtcf.Client
+{
+	public class DebriefingDialog
+	{
+		private fields ["_mHeader" as String, "_mText" as String];
+		
+		// Creates a DebriefingDialog object.
+		public constructor("_header" as String, "_text" as String)
+		{
+			_mHeader = _header;
+			_mText = _text;
+		};
+		
+		// Shows the dialog.
+		// Returns (DialogResult): A dialog result.
+		public method DialogResult ShowDialog()
+		{
+			waitUntil { !dialog };
+		
+			var _dlgHeader = 43;
+			var _dlgText = 44;
+			
+            createDialog "IntTutorialDialog";
+
+            ctrlSetText [_dlgHeader, _mHeader];
+            ctrlSetText [_dlgText, _mText];
+            
+            ctrlShow [45, false];
+
+			waitUntil { !dialog };
+			
+			return DialogResult.Ok;
+		};
+	};
+};

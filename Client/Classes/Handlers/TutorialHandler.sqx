@@ -1,0 +1,57 @@
+/*
+ * Name:    TutorialHandler
+ * Date:    2017-02-27
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles tutorials.
+ */
+
+using Tvtcf.Common;
+
+namespace Tvtcf.Client
+{
+	public class TutorialHandler
+	{
+		private static fields ["_mTutorialsTurnedOff" as Boolean];
+	
+        // Creates a TutorialHandler object.
+        public static method Init {
+        	_mTutorialsTurnedOff = false;
+		};
+		
+		// Shows a tutorial.
+		// _tutorialType (TutorialType): Type of tutorial to show.
+		private static method DoShowTutorial("_tutorialType" as TutorialType)
+		{
+			private ["_tutorial" as Tutorial, "_tutorialDialog" as TutorialDialog];
+			
+			waitUntil { !dialog };
+			
+			if (!_mTutorialsTurnedOff) then {
+
+				_tutorial = [_tutorialType] call TutorialConfig.GetTutorial;
+				
+				if (!_tutorial.IsTurnedOff) then {
+				
+					_tutorialDialog = [_tutorial] new TutorialDialog;
+					call _tutorialDialog.ShowDialog;
+					
+					_tutorial.IsTurnedOff = true;
+					
+					if (_tutorialDialog.TurnOffTutorials) then {
+						_mTutorialsTurnedOff = true;
+					};
+				};
+			};
+		};
+		
+		// Shows a tutorial.
+		// _name (String): Name of the tutorial.
+		public static method ShowTutorial("_tutorialType" as TutorialType)
+		{
+			[_tutorialType] spawn _self.DoShowTutorial;
+		};
+	};
+};

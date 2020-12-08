@@ -1,0 +1,93 @@
+/*
+ * Name:	MissionResultInfo
+ * Date:	2020-07-01
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Contains the result of a mission.
+ */
+namespace Tvtcf.Common
+{
+	public class MissionResultInfo
+	{
+		// Creates a MissionResult object.
+		public constructor("_primaryObjectiveName" as String, "_primaryObjectiveState" as ObjectiveState, "_secondaryObjectiveName" as String, "_secondaryObjectiveState" as ObjectiveState, "_usingReturnObjective" as Boolean, "_returnObjectiveState" as ObjectiveState, "_menAtStart" as Scalar, "_menAtEnd" as Scalar)
+		{
+			_self.PrimaryObjectiveScore = 100;
+			_self.SecondaryObjectiveScore = 50;
+			_self.ReturnObjectiveScore = 50;
+			_self.AllSurvivedBonusScore = 50;
+			_self.MenLostScore = 25;
+		
+			_self.PrimaryObjectiveName = _primaryObjectiveName;
+			_self.PrimaryObjectiveState = _primaryObjectiveState;
+			_self.SecondaryObjectiveName = _secondaryObjectiveName;
+			_self.SecondaryObjectiveState = _secondaryObjectiveState;
+			_self.UsingReturnObjective = _usingReturnObjective;
+			_self.ReturnObjectiveState = _returnObjectiveState;
+			_self.MenAtStart = _menAtStart;
+			_self.MenAtEnd = _menAtEnd;
+			
+			private _score = 0;
+			
+			if (_self.PrimaryObjectiveState == ObjectiveState.Succeeded) then {
+				_score = _score + _self.PrimaryObjectiveScore;
+			};
+			
+			if (_self.SecondaryObjectiveState == ObjectiveState.Succeeded) then {
+				_score = _score + _self.SecondaryObjectiveScore;
+			};
+			
+			if (_self.UsingReturnObjective && _self.ReturnObjectiveState == ObjectiveState.Succeeded) then {
+				_score = _score + _self.ReturnObjectiveScore;
+			};
+			
+			var _menLost = _menAtStart - _menAtEnd;
+			
+			if (_menLost > 0) then {
+				_score = _score - (_self.MenLostScore * _menLost);
+			}
+			else {
+				if (_score > 0) then {
+					_score = _score + _self.AllSurvivedBonusScore;
+				};
+			};
+			
+			if (_score < 0) then {
+				_score = 0;
+			};
+			
+			_self.Score = _score;
+		};
+		
+		public property Scalar PrimaryObjectiveScore { get; private set; };
+		
+		public property Scalar SecondaryObjectiveScore { get; private set; };
+		
+		public property Scalar ReturnObjectiveScore { get; private set; };
+		
+		public property Scalar AllSurvivedBonusScore { get; private set; };
+		
+		public property Scalar MenLostScore { get; private set; };
+		
+		
+		public property String PrimaryObjectiveName { get; private set; };
+		
+		public property ObjectiveState PrimaryObjectiveState { get; private set; };
+		
+		public property String SecondaryObjectiveName { get; private set; };
+		
+		public property ObjectiveState SecondaryObjectiveState { get; private set; };
+		
+		public property Boolean UsingReturnObjective { get; private set; };
+		
+		public property ObjectiveState ReturnObjectiveState { get; private set; };
+		
+		public property Scalar MenAtStart { get; private set; };
+		
+		public property Scalar MenAtEnd { get; private set; };
+		
+		public property Scalar Score { get; private set; };
+	};
+};

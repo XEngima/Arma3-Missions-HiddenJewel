@@ -1,0 +1,26 @@
+/*
+ * Name:	MarkerInfo
+ * Date:	2020-06-26
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Associates a marker with a side.
+ */
+namespace Tvtcf.Common
+{
+	public class MarkerInfo
+	{
+		// Creates a MarkerInfo object.
+		public constructor("_name" as String, "_side" as Side)
+		{
+			_self.Name = _name;
+			_self.Side = _side;
+		};
+		
+		public property String Name { get; private set; };
+		
+		public property Side Side { get; private set; };
+	};
+};
+

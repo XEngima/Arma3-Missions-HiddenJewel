@@ -1,0 +1,43 @@
+/*
+ * Name:	MissionSettings
+ * Date:	2020-07-13
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Contains the general mission settings.
+ */
+namespace Tvtcf.Server
+{
+	public class MissionSettings
+	{
+		// Creates a MissionSettings object.
+		public constructor()
+		{
+			_self.Name = "New Mission";
+			_self.StartTimeOfDay = 12;
+			_self.InsertionAreasActing = [];
+			_self.InsertionAreasOpposing = [];
+			_self.VisibleMarkersActing = [];
+			_self.VisibleMarkersOpposing = [];
+			_self.HasReturnObjectiveActing = false;
+			_self.HasReturnObjectiveOpposing = false;
+		};
+		
+		public property String Name { get; set; };
+		
+		public property Scalar StartTimeOfDay { get; set; };
+		
+		public property Array InsertionAreasActing { get; set; };
+		
+		public property Array InsertionAreasOpposing { get; set; };
+		
+		public property Array VisibleMarkersActing { get; set; };
+		
+		public property Array VisibleMarkersOpposing { get; set; };
+		
+		public property Boolean HasReturnObjectiveActing { get; set; };
+		
+		public property Boolean HasReturnObjectiveOpposing { get; set; };
+	};
+};

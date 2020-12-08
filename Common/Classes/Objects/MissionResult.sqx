@@ -1,0 +1,95 @@
+/*
+ * Name:	MissionResult
+ * Date:	2020-07-01
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Contains the result of a mission.
+ */
+namespace Tvtcf.Common
+{
+	public class MissionResult
+	{
+		// Creates a MissionResult object.
+		public constructor("_missionName" as String, "_resultInfoWest" as MissionResultInfo, "_resultInfoEast" as MissionResultInfo, "_totalScoreWest" as Scalar, "_totalScoreEast" as Scalar)
+		{
+			_self.MissionName = _missionName;
+			_self.ResultInfoWest = _resultInfoWest;
+			_self.ResultInfoEast = _resultInfoEast;
+			_self.TotalScoreWest = _totalScoreWest;
+			_self.TotalScoreEast = _totalScoreEast;
+		};
+		
+		public property String MissionName { get; private set; };
+		
+		public property MissionResultInfo ResultInfoWest { get; private set; };
+		
+		public property MissionResultInfo ResultInfoEast { get; private set; };
+		
+		public property Scalar TotalScoreWest { get; private set; };
+		
+		public property Scalar TotalScoreEast { get; private set; };
+		
+		public method MissionResultInfo GetResultInfo("_side" as Side)
+		{
+			if (_side == west) then {
+				return _self.ResultInfoWest;
+			};
+			
+			return _self.ResultInfoEast;
+		};
+		
+		public method String ToDiaryText("_side" as Side)
+		{
+			var _resultInfo = [_side] call _self.GetResultInfo;
+			
+			private _diaryText = _self.MissionName + "<br />";
+			_diaryText = _diaryText + "<br />" + _resultInfo.PrimaryObjectiveName + ": ";
+			_diaryText = _diaryText + ([_resultInfo.PrimaryObjectiveState] call ObjectiveStateMeta.ToLang);
+			
+			if (_resultInfo.PrimaryObjectiveState == ObjectiveState.Succeeded) then {
+				_diaryText = _diaryText + " (+" + str _resultInfo.PrimaryObjectiveScore + ")";
+			};
+			
+			if (_resultInfo.SecondaryObjectiveName != "") then
+			{
+				_diaryText = _diaryText + "<br />" + _resultInfo.SecondaryObjectiveName + ": ";
+				_diaryText = _diaryText + ([_resultInfo.SecondaryObjectiveState] call ObjectiveStateMeta.ToLang);
+				
+				if (_resultInfo.SecondaryObjectiveState == ObjectiveState.Succeeded) then {
+					_diaryText = _diaryText + " (+" + str _resultInfo.SecondaryObjectiveScore + ")";
+				};
+			};
+			
+			if (_resultInfo.UsingReturnObjective) then
+			{
+				_diaryText = _diaryText + "<br />Return to insertion point: ";
+				_diaryText = _diaryText + ([_resultInfo.ReturnObjectiveState] call ObjectiveStateMeta.ToLang);
+				
+				if (_resultInfo.ReturnObjectiveState == ObjectiveState.Succeeded) then {
+					_diaryText = _diaryText + " (+" + str _resultInfo.ReturnObjectiveScore + ")";
+				};
+			};
+			
+			var _menLostCount = _resultInfo.MenAtStart - _resultInfo.MenAtEnd;
+			_diaryText = _diaryText + "<br />Men lost: " + str _menLostCount;
+			
+			if (_menLostCount > 0) then {
+				_diaryText = _diaryText + " (" + str _menLostCount + " x -" + str _resultInfo.MenLostScore + " = " + str (-_menLostCount * _resultInfo.MenLostScore) + ")";
+			}
+			else {
+				if (_resultInfo.Score > 0) then {
+					_diaryText = _diaryText + " (Bonus for success and all survived: +" + str _resultInfo.AllSurvivedBonusScore + ")";
+				};
+			};
+				
+			_diaryText = _diaryText + "<br /><br />Mission score: " + str _resultInfo.Score;
+			
+			_diaryText = _diaryText + "<br /><br />Total score";
+			_diaryText = _diaryText + "<br />West: " + str _self.TotalScoreWest + ". East: " + str _self.TotalScoreEast + ".";
+			
+			return _diaryText;
+		};
+	};
+};

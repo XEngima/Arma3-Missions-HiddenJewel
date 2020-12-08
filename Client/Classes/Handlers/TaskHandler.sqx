@@ -1,0 +1,65 @@
+/*
+ * Name:	TaskHandler
+ * Date:	2019-02-18
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * A class that handles the local player's tasks (by encapsuling and taking care of all advanced Arma stuff regarding the subject).
+ */
+
+using Tvtcf.Common;
+
+namespace Tvtcf.Client
+{
+	public class TaskHandler
+	{
+		private fields ["_mTaskIds" as Array, "_mTaskPrefix" as String];
+
+		// Creates a TaskHandler object.
+		public constructor()
+		{
+			_mTaskIds = [];
+			_mTaskPrefix = "MissionTask_" + (str getPlayerUID player) + "_";
+		};
+		
+		// Creates a task for the current player.
+		public method CreateTask("_missionObjective" as MissionObjective, "_prio" as ObjectivePrio, "_showNotification" as Boolean)
+		{
+			private ["_taskId" as String];
+			
+			_taskId = _mTaskPrefix + str _prio;
+			
+			[player, _taskId, [_missionObjective.FullDescription, _missionObjective.ShortDescription], [], "CREATED", 0, _showNotification] call BIS_fnc_taskCreate;
+			_mTaskIds pushBack _taskId;
+		};
+		
+		// Sets task state for current player.
+		// _task (Task): The task to set.
+		// _taskState (TaskState): The task state to be set.
+		public method SetTaskState("_prio" as ObjectivePrio, "_objectiveState" as ObjectiveState, "_showNotification" as Boolean)
+		{
+			private ["_taskId" as String];
+			
+			// Set the task state for the local player
+			
+			_taskId = _mTaskPrefix + str _prio;
+			
+			[_taskId, [_objectiveState] call ObjectiveStateMeta.ToTaskStateString, _showNotification] call BIS_fnc_taskSetState;
+		};
+		
+		public method ShowNotification("_text" as String)
+		{
+			["TaskCreated", ["", _text]] call BIS_fnc_showNotification;
+		};
+		
+		public method DeleteAllTasks()
+		{
+			{
+				[_x, playerSide] call BIS_fnc_deleteTask;
+			} foreach _mTaskIds as String;
+			
+			_mTaskIds = [];
+		};
+	};
+};

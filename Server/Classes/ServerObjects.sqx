@@ -1,0 +1,41 @@
+/*
+ * Name:	ServerObjects
+ * Date:	2020-01-16
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Static class that holds all server side configs, so they can be reached from anywhere on the server.
+ */
+
+using Tvtcf.Server;
+using Tvtcf.Common.Statics;
+
+namespace Tvtcf.Server.Statics
+{
+	public class ServerObjects
+	{
+		// Initializes the ServerObjects object.
+		public static method Init()
+		{
+			_self.MissionUnitsHandler = new MissionUnitsHandler;
+			
+			_self.CampaignStarter = new CampaignStarter;
+			
+			_self.CampaignEngine = [
+				CommonObjects.BaseMarkersConfig, 
+				ServerObjects.MissionUnitsHandler, 
+				CommonObjects.MissionParametersHandler.AiWestFrequency, 
+				CommonObjects.MissionParametersHandler.AiEastFrequency,
+				CommonObjects.MissionParametersHandler.TimeBetweenMissions,
+				CommonObjects.MissionParametersHandler.CampaignLimitTime,
+				CommonObjects.MissionParametersHandler.CampaignMode] new CampaignEngine;
+		};
+		
+		public static property MissionUnitsHandler MissionUnitsHandler { get; private set; };
+		
+		public static property CampaignStarter CampaignStarter { get; private set; };
+		
+		public static property CampaignEngine CampaignEngine { get; private set; };
+	};
+};

@@ -1,0 +1,16 @@
+/*
+ * Name:    TutorialType
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * An enum with tutorial types.
+ */
+namespace Tvtcf.Client
+{
+	public enum TutorialType
+	{
+		Welcome,
+		CoopAndSpInfo
+	};
+};

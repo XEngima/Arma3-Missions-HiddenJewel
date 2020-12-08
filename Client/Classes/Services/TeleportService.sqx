@@ -1,0 +1,168 @@
+/*
+ * Name:	TeleportService
+ * Date:	2020-07-03
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Performs teleportations of the player.
+ */
+
+using Sqx.Services;
+
+namespace Tvtcf.Client
+{
+	public class TeleportService : Service
+	{
+		private fields ["_mPosition" as Array, "_mTeleportVehicles" as Boolean, "_mDoBlackOut" as Boolean];
+		
+		// Creates a TeleportService object.
+		public constructor("_position" as Array, ["_teleportVehicles" as Boolean, true], ["_doBlackOut" as Boolean, true])
+		{
+			call _base.Constructor;
+			_mPosition = _position;
+			_mDoBlackOut = _doBlackOut;
+			_mTeleportVehicles = _teleportVehicles;
+		};
+		
+		private static method Array FindSafePos("_pos" as Array)
+		{
+			private ["_spawnpos", "_randir", "_extendedRadius", "_randis", "_houses", "_supplies", "_vehicles", "_isFlat", "_danger", "_foundIt", "_tries"];
+			private ["_distanceToNearestVehicle" as Scalar, "_distanceFromBuilding" as Scalar, "_allowedSteepness" as Scalar];
+			
+			_distanceFromBuilding = 10;
+			_allowedSteepness = 0.5;
+			
+			_distanceToNearestVehicle = 9;
+			
+			_spawnpos = [];
+			_foundIt = false;
+			_tries = 0;
+			_extendedRadius = 0;
+			
+			while { true } do {
+				scopeName "SpawnPosGen";
+				
+				_randir = floor random 360;
+				_randis = floor random _extendedRadius;
+				_spawnpos = [(_pos select 0) + ((sin _randir) * _randis), (_pos select 1) + ((cos _randir) * _randis), 0.1];
+				_houses = nearestObjects [_spawnpos, ["house","wall"], 50];
+				_supplies = _spawnpos nearSupplies 2;
+				_vehicles = nearestObjects [_spawnpos, ["LandVehicle", "AirVehicle", "Man"], 25];
+				_isFlat = _spawnpos isFlatEmpty [2, -1, _allowedSteepness, 10, 0, false, objNull ];
+				_danger = false;
+				{ if (floor(_spawnpos distance getPos _x) < _distanceFromBuilding) then { _danger=true; }; } forEach _houses;
+				{ if (floor(_spawnpos distance getPos _x) < _distanceToNearestVehicle) then { _danger=true; }; } forEach _vehicles;
+				{ if (floor(_spawnpos distance getPos _x) < _distanceToNearestVehicle) then { _danger=true; }; } forEach _supplies;
+				if (count _isFlat < 1 ) then { _danger=true; };
+				if (!_danger) then { 
+					_foundIt = true;
+					breakOut "SpawnPosGen"
+				};
+				_tries = _tries + 1;
+				_extendedRadius = _extendedRadius + 0.5;
+				sleep 0.01;
+			};
+			
+			if (!_foundIt) then {
+				_spawnPos = [];
+			};
+			
+			return _spawnpos;
+		};
+		
+		private method TeleportVehicleAndCrew("_vehicle" as Object)
+		{
+			var _everyoneInTheSameVehicle = true;
+			
+			{
+				if (vehicle _x != _x) then { // If unit in vehicle
+					if (vehicle _x != _vehicle) then {
+						_everyoneInTheSameVehicle = false;
+					};
+				};
+			} foreach units group player as Object;
+			
+			var _occupiedByAnotherVehicle = false;
+			
+			{
+				if (_x distance _mPosition < 10) then {
+					_occupiedByAnotherVehicle = true;
+				};
+			} foreach vehicles as Object;
+			
+			var _safePos = _mPosition;
+			
+			if (!_everyoneInTheSameVehicle || _occupiedByAnotherVehicle) then {
+				_safePos = [_mPosition] call _self.FindSafePos;
+				
+				if (count _safePos == 0) then {
+					_safePos = [(_safePos select 0) - 3 + random 6, (_safePos select 1) - 3 + random 6, 0.25];
+				};
+			};
+			
+			_vehicle setPos [(_safePos select 0), (_safePos select 1), 0.25];
+		};
+		
+		// Teleports the player instantly.
+		protected override method Run()
+		{
+			if (player distance _mPosition > 50) then
+			{
+				if (_mDoBlackOut) then {
+					//cutText ["", "BLACK OUT", 0.5];
+					sleep 0.5;
+				};
+				
+				if (_mTeleportVehicles) then
+				{
+					private _teleportedUnits = [];
+					
+					{
+						private _unit = vehicle _x;
+						private _isVehicle = vehicle _x != _x;
+		
+						if (_isVehicle) then
+						{
+							if (local _unit && { !(_unit in _teleportedUnits) }) then
+							{
+								[_unit] call _self.TeleportVehicleAndCrew;
+								_teleportedUnits pushBack _unit;
+							};
+						}
+						else // Is single unit
+						{
+							if (local _unit && { !(_unit in _teleportedUnits) }) then {
+								_unit setPos [(_mPosition select 0) - 3 + random 6, (_mPosition select 1) - 3 + random 6, 0.1];
+								_teleportedUnits pushBack _unit;
+							};
+						};
+					} foreach units group player;
+				}
+				else
+				{
+					{
+						if (local _x) then
+						{
+							_x setPos [(_mPosition select 0) - 3 + random 6, (_mPosition select 1) - 3 + random 6, 0.1];
+						};
+					} foreach units group player;
+					
+					// Just in case - it seems that player do not always teleport.
+					if (player distance _mPosition > 10) then {
+						player setPos [(_mPosition select 0) - 3 + random 6, (_mPosition select 1) - 3 + random 6, 0.1];
+					};
+				};
+				
+				player setDamage 0;
+				openMap false;
+				
+				if (_mDoBlackOut) then {
+					//cutText ["", "BLACK IN", 0.5];
+				};
+			};
+			
+			call _base.Run;
+		};
+	};
+};

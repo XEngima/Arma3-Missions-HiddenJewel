@@ -1,0 +1,25 @@
+/*
+ * Name:	DictionaryItem
+ * Date:	2019-05-20
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * A general purpose dictionary item.
+ */
+namespace Tvtcf.Common
+{
+	public class DictionaryItem
+	{
+		// Creates a DictionaryItem object.
+		public constructor("_key" as Any, "_value" as Any)
+		{
+			_self.Key = _key;
+			_self.Value = _value;
+		};
+		
+		public property Any Key { get; private set; };
+		
+		public property Any Value { get; private set; };
+	};
+};

@@ -1,0 +1,59 @@
+/*
+ * Name:	ObjectiveState
+ * Date:	2020-07-25
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * An enum describing the different states of an objective.
+ */
+namespace Tvtcf.Common
+{
+	public enum ObjectiveState
+	{
+		None,
+		Canceled,
+		Failed,
+		Succeeded
+	};
+	
+	public class ObjectiveStateMeta
+	{
+		public static method ToLang("_state" as ObjectiveState)
+		{
+			switch (_state) do {
+				case ObjectiveState.None: { return "Failed"; };
+				case ObjectiveState.Canceled: { return "Canceled"; };
+				case ObjectiveState.Failed: { return "Failed"; };
+				case ObjectiveState.Succeeded: { return "Succeeded"; };
+				default { return "<< Objective state key not defined >>"; };
+			};
+		};
+		
+		// Converts the TaskState value to the corresponding status text.
+		// _taskState (TaskState): The task state.
+		public static method String ToTaskStateString("_taskState" as ObjectiveState)
+		{
+			switch (_taskState) do {
+				case ObjectiveState.None: { return "CREATED"; };
+				case ObjectiveState.Canceled: { return "CANCELED"; };
+				case ObjectiveState.Succeeded: { return "SUCCEEDED"; };
+				case ObjectiveState.Failed: { return "FAILED"; };
+				default { return "UNKNOWN"; };
+			};
+		};
+		
+		// Converts a task string status to the corresponding status value.
+		// _taskState (String): The task state as a string.
+		public static method ObjectiveState ToValue("_taskState" as String)
+		{
+			switch (_taskState) do {
+				case "CREATED": { return ObjectiveState.None; };
+				case "CANCELED": { return ObjectiveState.Canceled; };
+				case "SUCCEEDED": { return ObjectiveState.Succeeded; };
+				case "FAILED": { return ObjectiveState.Failed; };
+				default { return ObjectiveState.None; };
+			};
+		};
+	};
+};

@@ -1,0 +1,70 @@
+/*
+ * Name:	Remote
+ * Date:	2017-11-18
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles remote execution. All calls that need to be done across the network must be registered here.
+ */
+
+using Tvtcf.Client.Statics;
+using Tvtcf.Server.Statics;
+
+namespace Tvtcf.Communication
+{
+	public class Remote
+	{
+		// Invokes a method on another machine.
+		// _methodFullName (String): The full name of the method to execute on another machine.
+		// _parameter (Any): The parameter (or list of parameters) to use in the method call.
+		public static method Invoke("_methodFullName" as String, ["_parameter" as Any, []])
+		{
+			[_methodFullName, _parameter] remoteExec ["Tvtcf_Communication_Remote_Recieve", RemoteTargetOptions.All];
+		};
+		
+		// Remotely called by the invoking machine and executed locally. Fires the intended invoked method.
+		// _methodFullName (String): The name of the method (including class name) to execute on this current machine.
+		// _parameter (Any): The parameter (or list of parameters) to use in the method call.
+		public static method Recieve("_methodFullName" as String, "_parameters" as Any)
+		{
+			if (isServer) then
+			{
+				// Messages routed to the server
+				
+				switch (_methodFullName) do
+				{
+					case "ServerEventReciever.OnPlayerPerformingInsertion": { _parameters spawn ServerEventReciever.OnPlayerPerformingInsertion; };
+					case "ServerEventReciever.OnAction": { _parameters spawn ServerEventReciever.OnAction; };
+					case "ServerEventReciever.OnEndMission": { _parameters spawn ServerEventReciever.OnEndMission; };
+					case "ServerEventReciever.OnForceNextMission": { _parameters spawn ServerEventReciever.OnForceNextMission; };
+				};
+			};
+			
+			if (!isDedicated) then
+			{
+				// Messages routed to clients (or to a hosted server)
+			
+				switch (_methodFullName) do
+				{
+					case "ClientEventReciever.OnCampaignStart": { _parameters spawn ClientEventReciever.OnCampaignStart; };
+					case "ClientEventReciever.OnMissionTimeTick": { _parameters spawn ClientEventReciever.OnMissionTimeTick; };
+					case "ClientEventReciever.OnMissionStarting": { _parameters spawn ClientEventReciever.OnMissionStarting; };
+					case "ClientEventReciever.OnMissionSetup": { _parameters spawn ClientEventReciever.OnMissionSetup; };
+					case "ClientEventReciever.OnInsertGroup": { _parameters spawn ClientEventReciever.OnInsertGroup; };
+					case "ClientEventReciever.OnMissionEnding": { _parameters spawn ClientEventReciever.OnMissionEnding; };
+					case "ClientEventReciever.OnMissionEnded": { _parameters spawn ClientEventReciever.OnMissionEnded; };
+					case "ClientEventReciever.OnMissionBriefing": { _parameters spawn ClientEventReciever.OnMissionBriefing; };
+					case "ClientEventReciever.OnTaskStateChanged": { _parameters spawn ClientEventReciever.OnTaskStateChanged; };
+					case "ClientEventReciever.OnCampaignEnded": { _parameters spawn ClientEventReciever.OnCampaignEnded; };
+					case "ClientEventReciever.OnUnitKilled": { _parameters spawn ClientEventReciever.OnUnitKilled; };
+					case "ClientEventReciever.OnShowNotification": { _parameters spawn ClientEventReciever.OnShowNotification; };
+					case "ClientEventReciever.OnAddAction": { _parameters spawn ClientEventReciever.OnAddAction; };
+					case "ClientEventReciever.OnDeleteActions": { _parameters spawn ClientEventReciever.OnDeleteActions; };
+					case "ClientEventReciever.OnForceNextMission": { _parameters spawn ClientEventReciever.OnForceNextMission; };
+					case "ClientEventReciever.OnCreateSideMarker": { _parameters spawn ClientEventReciever.OnCreateSideMarker; };
+				};
+			};
+		};
+	};
+};

@@ -1,0 +1,19 @@
+/*
+ * Name:	DialogResult
+ * Date:	2017-11-29
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * A result returned from a dialog.
+ */
+namespace Tvtcf.Client
+{
+	public enum DialogResult
+	{
+		Yes = 1,
+		No = 2,
+		Ok = 3,
+		Cancel = 4,
+	};
+};

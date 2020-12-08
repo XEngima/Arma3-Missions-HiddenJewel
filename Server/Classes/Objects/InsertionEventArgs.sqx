@@ -1,0 +1,29 @@
+/*
+ * Name:	InsertionEventArgs
+ * Date:	2020-08-12
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Event arguments for the Mission class' insertion methods.
+ */
+namespace Tvtcf.Server
+{
+	public class InsertionEventArgs
+	{
+		// Creates a InsertionEventArgs object.
+		public constructor("_side" as Side, "_position" as Array)
+		{
+			_self.Side = _side;
+			_self.Position = _position;
+			_self.ShowInsertionMarker = true;
+		};
+		
+		public property Side Side { get; private set; };
+		
+		public property Array Position { get; set; };
+		
+		public property Boolean ShowInsertionMarker { get; set; };
+	};
+};
+

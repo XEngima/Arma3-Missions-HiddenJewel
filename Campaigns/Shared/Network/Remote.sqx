@@ -1,0 +1,32 @@
+/*
+ * Name:	Remote
+ * Date:	2020-10-01
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles custom remote execution used for campaigns in the current project (see README.sqx).
+ */
+
+using Tvtcf.Communication;
+
+namespace Campaigns.Network
+{
+	public class Remote : CampaignRemote
+	{
+		// Add more necessary non static remote event methods below.
+		// All these methods should only contain one line, a call to the remote invocation method, _self.Invoke.
+		
+		// Sends a "ShowMessage" event to all clients, informing them that there is a message to be shown for 
+		// some players.
+		// _message (String): The message to show.
+		// _showOnSide (Side): The message is shown for all players on this side.
+		public method SendShowMessage("_message" as String, "_showOnSide" as Side)
+		{
+			// We send the name of the event to the client reciever method along with the parameters to the remote invocation call.
+			// The name should be the name of the event, i.e. the name of this method but without the leading "Send".
+			
+			["ShowMessage", _this] call _self.Invoke;
+		};
+	};
+};

@@ -1,0 +1,61 @@
+/*
+ * Namespace: Campaigns.Network
+ * Date:	2020-10-01
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Namespace that handles all remote campaign events sent from the server to client machines.
+ *
+ *
+ * ================
+ * The Remote Class
+ * ================
+ * The remote class is used for communication between the server and the clients. The communication
+ * is done via "events" that basically tells the clients about events taking place on the server,
+ * and then the clients can take action.
+ *
+ * The class contains one method for each event to handle. Add methods in this class for each event 
+ * that you need. When a method in this class is called, the corresponding method in class
+ * ClientEventReciever is executed on the client.
+ *
+ * All these methods should only contain one line, a call to the remote invocation method, 
+ * _self.Invoke.
+ *
+ * The names of these methods should be "Send[EventName]", (e.g. SendOfficerKilled"). All these
+ * methods must be static.
+ *
+ * 
+ * =============================
+ * The ClientEventReciever Class
+ * =============================
+ *
+ * The methods in this class are executed when their corresponding events are invoked on the server.
+ *
+ * The names of these methods should be "On[EventName]", since they are recieving information about 
+ * an event, rather than being demanded to perform some particular action, (e.g. OnOfficerKilled"). 
+ * These methods must not be static.
+ *
+ *
+ * =======
+ * Example
+ * =======
+ *
+ * In one particlular mission you want to teleport a user to a new location when he reaches a
+ * particular position. The problem is that you cannot setPos on the server, since it is only
+ * the user's own machine (where the unit is local) that can do it.
+ *
+ * 1. In the Remote class, add the following method:
+ *    SendPlayerReachedTeleportPosition("_player" as Object, "_position" as Array).
+ *
+ * 2. In the ClientEventReciever, add the following corresponding method:
+ *    OnPlayerReachedTeleportPosition("_player" as Object, "_position" as Array).
+ * 
+ * 3. In the method OnPlayerReachedTeleportPosition, which will be executed on the client machine,
+ *    add the locic that teleports the player to the new position:
+ *    
+ *    if (player == _player) then {
+ *        player setPos _position;
+ *    };
+ *
+ */

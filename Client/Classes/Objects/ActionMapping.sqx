@@ -1,0 +1,28 @@
+/*
+ * Name:	ActionMapping
+ * Date:	2020-08-05
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Maps the server's action ID to a client action ID and the action target.
+ */
+namespace Tvtcf.Client
+{
+	public class ActionMapping
+	{
+		// Creates a DictionaryItem object.
+		public constructor("_serverActionId" as Scalar, "_clientActionId" as Scalar, "_target" as Object)
+		{
+			_self.ServerActionId = _serverActionId;
+			_self.ClientActionId = _clientActionId;
+			_self.Target = _target;
+		};
+		
+		public property Scalar ServerActionId { get; private set; };
+		
+		public property Scalar ClientActionId { get; private set; };
+		
+		public property Object Target { get; private set; };
+	};
+};

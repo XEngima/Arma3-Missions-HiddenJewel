@@ -1,0 +1,350 @@
+/*
+ * Name:	PublicVariableHandler
+ * Date:	2017-11-30
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Encapsulates all global variable handling and keeps its global properties persistent and at sync.
+ * over the network.
+ *
+ * Remarks:
+ * This is the *only* only file where the global public network variables are actually written.
+ */
+
+using Tvtcf.Common;
+
+namespace Tvtcf.Communication
+{
+	public class PublicVariableHandler
+	{
+		// Sets and broadcasts mission markers info across the network.
+		// _campaignPhase (CampaignPhase): The mission markers info object to be broadcasted.
+		public static method BroadcastMissionMarkersInfo("_missionMarkersInfo" as MissionMarkersInfo)
+		{
+			PUBVAR_MissionMarkersInfo = _missionMarkersInfo;
+			publicVariable "PUBVAR_MissionMarkersInfo";
+		};
+		
+		// Gets whether the variable for mission markers info has started has been public variabled at least once, so it actually has a value.
+		public static method Boolean HasValueMissionMarkersInfo() {
+			return !isNil "PUBVAR_MissionMarkersInfo";
+		};
+		
+		// Gets the mission markers info object from the public network synchronized variable.
+		// Before using this method, always call the corresponding HasValue method, since it might be nil if not yet broadcast.
+		public static method MissionMarkersInfo GetMissionMarkersInfo()
+		{
+			if (call _self.HasValueMissionMarkersInfo) then {
+				return PUBVAR_MissionMarkersInfo;
+			};
+
+			return classNull;
+		};
+		
+		
+		// Sets and broadcasts mission briefing across the network.
+		// _campaignPhase (CampaignPhase): The mission markers info object to be broadcasted.
+		public static method BroadcastMissionBriefing("_missionBriefing" as MissionBriefing)
+		{
+			PUBVAR_MissionBriefing = _missionBriefing;
+			publicVariable "PUBVAR_MissionBriefing";
+		};
+		
+		// Gets whether the variable for mission briefing has started has been public variabled at least once, so it actually has a value.
+		public static method Boolean HasValueMissionBriefing() {
+			return !isNil "PUBVAR_MissionBriefing";
+		};
+		
+		// Gets the mission briefing object from the public network synchronized variable.
+		// Before using this method, always call the corresponding HasValue method, since it might be nil if not yet broadcast.
+		public static method MissionBriefing GetMissionBriefing()
+		{
+			if (call _self.HasValueMissionBriefing) then {
+				return PUBVAR_MissionBriefing;
+			};
+
+			return classNull;
+		};
+		
+		
+		// Sets and broadcasts whether west has inserted across the network.
+		// _hasInserted (Boolean): Whether west has inserted into the mission or not.
+		public static method BroadcastWestHasInserted("_hasInserted" as Boolean)
+		{
+			PUBVAR_WestHasInserted = _hasInserted;
+			publicVariable "PUBVAR_WestHasInserted";
+		};
+		
+		// Gets whether west has inserted into the mission at lwest once, so it actually has a value.
+		public static method Boolean HasValueWestHasInserted() {
+			return !isNil "PUBVAR_WestHasInserted";
+		};
+		
+		// Gets whether west has inserted from the public network synchronized variable.
+		// Returns: true if west has inserted, otherwise false.
+		public static method Boolean GetWestHasInserted()
+		{
+			if (call _self.HasValueWestHasInserted) then {
+				return PUBVAR_WestHasInserted;
+			};
+
+			return false;
+		};
+		
+		
+		// Sets and broadcasts whether east has inserted across the network.
+		// _hasInserted (Boolean): Whether east has inserted into the mission or not.
+		public static method BroadcastEastHasInserted("_hasInserted" as Boolean)
+		{
+			PUBVAR_EastHasInserted = _hasInserted;
+			publicVariable "PUBVAR_EastHasInserted";
+		};
+		
+		// Gets whether east has inserted into the mission at least once, so it actually has a value.
+		public static method Boolean HasValueEastHasInserted() {
+			return !isNil "PUBVAR_EastHasInserted";
+		};
+		
+		// Gets whether east has inserted from the public network synchronized variable.
+		// Returns: true if east has inserted, otherwise false.
+		public static method Boolean GetEastHasInserted()
+		{
+			if (call _self.HasValueEastHasInserted) then {
+				return PUBVAR_EastHasInserted;
+			};
+
+			return false;
+		};
+		
+		
+		// Sets and broadcasts whether west has returned across the network.
+		// _hasReturned (Boolean): Whether west has returned from the mission or not.
+		public static method BroadcastWestHasReturned("_hasReturned" as Boolean)
+		{
+			PUBVAR_WestHasReturned = _hasReturned;
+			publicVariable "PUBVAR_WestHasReturned";
+		};
+		
+		// Gets whether west has returned from the mission at lwest once, so it actually has a value.
+		public static method Boolean HasValueWestHasReturned() {
+			return !isNil "PUBVAR_WestHasReturned";
+		};
+		
+		// Gets whether west has returned from the public network synchronized variable.
+		// Returns: true if west has returned, otherwise false.
+		public static method Boolean GetWestHasReturned()
+		{
+			if (call _self.HasValueWestHasReturned) then {
+				return PUBVAR_WestHasReturned;
+			};
+
+			return false;
+		};
+		
+		
+		// Sets and broadcasts whether east has returned across the network.
+		// _hasReturned (Boolean): Whether east has returned from the mission or not.
+		public static method BroadcastEastHasReturned("_hasReturned" as Boolean)
+		{
+			PUBVAR_EastHasReturned = _hasReturned;
+			publicVariable "PUBVAR_EastHasReturned";
+		};
+		
+		// Gets whether east has returned from the mission at least once, so it actually has a value.
+		public static method Boolean HasValueEastHasReturned() {
+			return !isNil "PUBVAR_EastHasReturned";
+		};
+		
+		// Gets whether east has returned from the public network synchronized variable.
+		// Returns: true if east has returned, otherwise false.
+		public static method Boolean GetEastHasReturned()
+		{
+			if (call _self.HasValueEastHasReturned) then {
+				return PUBVAR_EastHasReturned;
+			};
+
+			return false;
+		};
+		
+		
+		public static method BroadcastWestInsertionPos("_westInsertionPos" as Array)
+		{
+			PUBVAR_WestInsertionPos = _westInsertionPos;
+			publicVariable "PUBVAR_WestInsertionPos";
+		};
+		
+		public static method Boolean HasValueWestInsertionPos() {
+			return !isNil "PUBVAR_WestInsertionPos";
+		};
+		
+		public static method Array GetWestInsertionPos()
+		{
+			if (call _self.HasValueWestInsertionPos) then {
+				return PUBVAR_WestInsertionPos;
+			};
+
+			return [0, 0, 0];
+		};
+		
+		
+		public static method BroadcastEastInsertionPos("_eastInsertionPos" as Array)
+		{
+			PUBVAR_EastInsertionPos = _eastInsertionPos;
+			publicVariable "PUBVAR_EastInsertionPos";
+		};
+		
+		public static method Boolean HasValueEastInsertionPos() {
+			return !isNil "PUBVAR_EastInsertionPos";
+		};
+		
+		public static method Array GetEastInsertionPos()
+		{
+			if (call _self.HasValueEastInsertionPos) then {
+				return PUBVAR_EastInsertionPos;
+			};
+
+			return [0, 0, 0];
+		};
+		
+		
+		public static method BroadcastInsertedWestlyUnits("_insertedWestlyUnits" as Array)
+		{
+			PUBVAR_InsertedWestlyUnits = _insertedWestlyUnits;
+			publicVariable "PUBVAR_InsertedWestlyUnits";
+		};
+		
+		public static method Boolean HasValueInsertedWestlyUnits() {
+			return !isNil "PUBVAR_InsertedWestlyUnits";
+		};
+		
+		public static method Array GetInsertedWestlyUnits()
+		{
+			if (call _self.HasValueInsertedWestlyUnits) then {
+				return PUBVAR_InsertedWestlyUnits;
+			};
+
+			return [];
+		};
+		
+		
+		public static method BroadcastInsertedEastlyUnits("_insertedEastlyUnits" as Array)
+		{
+			PUBVAR_InsertedEastlyUnits = _insertedEastlyUnits;
+			publicVariable "PUBVAR_InsertedEastlyUnits";
+		};
+		
+		public static method Boolean HasValueInsertedEastlyUnits() {
+			return !isNil "PUBVAR_InsertedEastlyUnits";
+		};
+		
+		public static method Array GetInsertedEastlyUnits()
+		{
+			if (call _self.HasValueInsertedEastlyUnits) then {
+				return PUBVAR_InsertedEastlyUnits;
+			};
+
+			return [];
+		};
+		
+		
+		public static method BroadcastBriefingEndTime("_briefingEndTime" as Scalar)
+		{
+			PUBVAR_BriefingEndTime = _briefingEndTime;
+			publicVariable "PUBVAR_BriefingEndTime";
+		};
+		
+		public static method Boolean HasValueBriefingEndTime() {
+			return !isNil "PUBVAR_BriefingEndTime";
+		};
+		
+		public static method Scalar GetBriefingEndTime()
+		{
+			if (call _self.HasValueBriefingEndTime) then {
+				return PUBVAR_BriefingEndTime;
+			};
+
+			return 0;
+		};		
+		
+		
+		public static method BroadcastMissionHasStarted("_missionHasStarted" as Boolean)
+		{
+			PUBVAR_MissionHasStarted = _missionHasStarted;
+			publicVariable "PUBVAR_MissionHasStarted";
+		};
+		
+		public static method Boolean HasValueMissionHasStarted() {
+			return !isNil "PUBVAR_MissionHasStarted";
+		};
+		
+		public static method Boolean GetMissionHasStarted()
+		{
+			if (call _self.HasValueMissionHasStarted) then {
+				return PUBVAR_MissionHasStarted;
+			};
+
+			return false;
+		};		
+		
+		
+		public static method BroadcastNextMissionStartTime("_nextMissionStartTime" as Scalar)
+		{
+			PUBVAR_NextMissionStartTime = _nextMissionStartTime;
+			publicVariable "PUBVAR_NextMissionStartTime";
+		};
+		
+		public static method Boolean HasValueNextMissionStartTime() {
+			return !isNil "PUBVAR_NextMissionStartTime";
+		};
+		
+		public static method Scalar GetNextMissionStartTime()
+		{
+			if (call _self.HasValueNextMissionStartTime) then {
+				return PUBVAR_NextMissionStartTime;
+			};
+
+			return 0;
+		};		
+		
+		
+		public static method BroadcastObjectiveChangeCollection("_objectiveChangeCollection" as ObjectiveChangeCollection)
+		{
+			PUBVAR_ObjectiveChangeCollection = _objectiveChangeCollection;
+			publicVariable "PUBVAR_ObjectiveChangeCollection";
+		};
+		
+		public static method Boolean HasValueObjectiveChangeCollection() {
+			return !isNil "PUBVAR_ObjectiveChangeCollection";
+		};
+		
+		public static method ObjectiveChangeCollection GetObjectiveChangeCollection()
+		{
+			if (call _self.HasValueObjectiveChangeCollection) then {
+				return PUBVAR_ObjectiveChangeCollection;
+			};
+
+			return classNull;
+		};		
+		
+		
+		public static method BroadcastMissionResultArray("_missionResultArray" as Array /* of MissionResult */)
+		{
+			PUBVAR_MissionResultArray = _missionResultArray;
+			publicVariable "PUBVAR_MissionResultArray";
+		};
+		
+		public static method Boolean HasValueMissionResultArray() {
+			return !isNil "PUBVAR_MissionResultArray";
+		};
+		
+		public static method Array GetMissionResultArray()
+		{
+			if (call _self.HasValueMissionResultArray) then {
+				return PUBVAR_MissionResultArray;
+			};
+
+			return [];
+		};		
+	};
+};

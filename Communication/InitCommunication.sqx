@@ -1,0 +1,10 @@
+call compile preprocessFileLineNumbers "Communication\RemoteTargetOptions.sqx";
+call compile preprocessFileLineNumbers "Communication\Remote.sqx";
+call compile preprocessFileLineNumbers "Communication\PublicVariableHandler.sqx";
+call compile preprocessFileLineNumbers "Communication\CampaignRemote.sqx";
+call compile preprocessFileLineNumbers "Campaigns\Shared\Network\ClientEventReciever.sqx";
+call compile preprocessFileLineNumbers "Campaigns\Shared\Network\Remote.sqx";
+
+using Tvtcf.Communication;
+
+call RemoteTargetOptions.Init;

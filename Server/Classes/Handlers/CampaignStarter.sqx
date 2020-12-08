@@ -1,0 +1,28 @@
+/*
+ * Name:	CampaignStarter
+ * Date:	2020-08-06
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * This class starts the campaign engine with the selected campaign.
+ */
+
+call compile preprocessFileLineNumbers "Campaigns\Shared\Bootstrapper.sqx";
+
+using Tvtcf.Common;
+using Tvtcf.Server;
+using Campaigns;
+
+namespace Tvtcf.Server.Statics
+{
+	public class CampaignStarter
+	{
+		public method StartCampaign()
+		{
+			var _campaign = call Bootstrapper.GetCampaign;
+			[_campaign] call ServerObjects.CampaignEngine.SetCampaign;
+			call ServerObjects.CampaignEngine.RunAsync;
+		};
+	};
+};

@@ -1,0 +1,117 @@
+/*
+ * Name:	Campaign
+ * Date:	2020-07-27
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * The base class for a campaign. Inherit this to create your own campaign.
+ */
+
+using Tvtcf.Common;
+
+namespace Campaigns
+{
+	public class Campaign
+	{
+		// Creates a Campaign object.
+		public constructor()
+		{
+			var _missions = [];
+			
+			_self.GainedTokensWest = [];
+			_self.LostTokensWest = [];
+			_self.GainedTokensEast = [];
+			_self.LostTokensEast = [];
+			
+			[_missions] call _self.SelectMissions;
+			
+			_self.Missions = _missions;			
+			_self.CurrentMissionIndex = -1;
+		};
+		
+		// Sets the campaign's campaign mode - "Follow Storyline" or "Randomize Missions".
+		// This method must not be called manually or during the campaign, or there may be unpredicted results.
+		// _mode (CampaignMode): The campaign mode to set. If "Randomize Missions" is set, the internal mission array is randomized.
+		public method SetCampaignMode("_mode" as CampaignMode)
+		{
+			_self.CampaignMode = _mode;
+			
+			if (_mode == CampaignMode.RandomizeMissions) then
+			{
+				[_self.Missions] call Functions.ShuffleArray;
+				
+				{
+					[selectRandom [west, east]] call _x.SetActingSide;
+				} foreach _self.Missions as Mission;
+			};
+		};
+		
+		// Initializes and adds all permanent missions of the campaign.
+		// If you do not override the method GetNextMission then the campaign will be played in the same order as
+		// the missions are added here in the _missions array.
+		// If the campaign is played with the "Randomize missions" option, the missions that are added here will
+		// be shuffled and played through, and GetNextMission will never be called.
+		// _missions (Array of Mission): The array to add missions to. Empty when sent in.
+		protected virtual method SelectMissions("_missions" as Array /* of Mission */)
+		{
+		};
+		
+		// Gets the current campaign mode that is played - i.e. one of "Follow Storyline" or "Randomize Missions".
+		protected property CampaignMode CampaignMode { get; private set; };
+		
+		// Gets the index of the current mission. Usually updated after call to GetNextMission.
+		protected property Scalar CurrentMissionIndex { get; protected set; };
+		
+		// Gets a list of all permanent missions.
+		protected property Array Missions { get; protected set; };
+		
+		// Gets a list of all tokens that the west side has gained in earlier missions.
+		public property Array GainedTokensWest { get; private set; };
+		
+		// Gets a list of all tokens that the east side has gained in earlier missions.
+		public property Array GainedTokensEast { get; private set; };
+		
+		// Gets a list of all tokens that the west side has lost in earlier missions.
+		public property Array LostTokensWest { get; private set; };
+		
+		// Gets a list of all tokens that the east side has lost in earlier missions.
+		public property Array LostTokensEast { get; private set; };
+		
+		// Gets the next mission to play, whether it is a storyline mission or a random mission. Called when a mission has ended 
+		// and a new is about to start.
+		// Returns (Mission): The next mission to play. classNull if the campaign is over.
+		public method Mission GetNextMissionToPlay()
+		{
+			if (_self.CampaignMode == CampaignMode.FollowStoryline) then {
+				return call _self.GetNextMission;
+			}
+			else
+			{
+				_self.CurrentMissionIndex = _self.CurrentMissionIndex + 1;
+				
+				if (_self.CurrentMissionIndex < count _self.Missions) then {
+					return _self.Missions select _self.CurrentMissionIndex;
+				};
+				
+				return classNull;
+			};
+			
+			return classNull;
+		};
+		
+		// Gets the next mission when the campaign is played in mode "Follow Storyline".
+		// Default behavior is to simply return the next mission in the mission array filled in SelectMissions.
+		// Returns (Mission): The next mission to play. classNull if the campaign is over.
+		protected virtual method Mission GetNextMission()
+		{
+			_self.CurrentMissionIndex = _self.CurrentMissionIndex + 1;
+			
+			if (_self.CurrentMissionIndex < count _self.Missions) then {
+				return _self.Missions select _self.CurrentMissionIndex;
+			};
+			
+			return classNull;
+		};
+	};
+};

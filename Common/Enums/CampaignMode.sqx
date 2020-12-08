@@ -1,0 +1,17 @@
+/*
+ * Name:	CampaignMode
+ * Date:	2020-10-13
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Enumeration for campaign play modes.
+ */
+namespace Tvtcf.Common
+{
+	public enum CampaignMode
+	{
+		FollowStoryline = 1,
+		RandomizeMissions = 2,
+	};
+};

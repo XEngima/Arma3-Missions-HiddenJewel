@@ -1,0 +1,58 @@
+call compile preprocessFileLineNumbers "Client\Classes\ClientState.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\ClientObjects.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\ClientEventReciever.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\ClientEventHandlers.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Configs\TutorialConfig.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Dialogs\TutorialDialog.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Dialogs\DebriefingDialog.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Handlers\TutorialHandler.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Handlers\BriefingHandler.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Handlers\TaskHandler.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Handlers\MapMarkerHandler.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Handlers\TvtcfActionMenuHandler.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Handlers\ClientMessageHandler.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Handlers\CameraHandler.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Handlers\ClientMissionActionHandler.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Handlers\ExtractionSymbolHandler.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Objects\ActionMapping.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Objects\Tutorial.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Services\CampaignEndService.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Services\PerformInsertionService.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Services\TeleportService.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Services\JipService.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Services\MissionBriefingService.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Services\MissionPrepareCounter.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Services\BaseInsertionService.sqx";
+call compile preprocessFileLineNumbers "Client\Classes\Services\WaitingForMissionCounter.sqx";
+
+using Tvtcf.Client;
+using Tvtcf.Client.Statics;
+
+namespace Mission
+{
+	public class Client
+	{
+		// Initializes the client
+		public static method Initialize()
+		{
+			// Make sure the player object exists
+			cutText ["", "BLACK FADED"];
+			waitUntil { player == player };
+			
+			call TutorialConfig.Init;
+			call TutorialHandler.Init;
+			
+			call ClientState.Init;
+			
+			// Bootstrap the client singletons.
+			call ClientObjects.Init;
+			
+			// Initialize all client eventhandlers.
+			call ClientEventHandlers.Init;
+			
+			// Initialize the TvTCF menu.
+			sleep 1;
+			call TvtcfActionMenuHandler.Init;
+		};
+	};
+};

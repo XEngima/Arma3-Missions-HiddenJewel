@@ -1,0 +1,55 @@
+/*
+ * Name:    BriefingHandler
+ * Date:	2020-01-13
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles the mission's briefing.
+ */
+
+using Tvtcf.Common;
+
+namespace Tvtcf.Client
+{
+	public class BriefingHandler : IBriefingHandler
+	{
+		private fields ["_mDiaryReckords" as Array];
+	
+		public constructor()
+		{
+    		_mDiaryReckords = [];
+		};
+	
+        // Creates the briefing texts for the player.
+        public method CreateBriefing("_missionName" as String, "_briefingInfo" as String)
+        {
+    		{
+    			player removeDiaryRecord ["Diary", _x];
+    		} foreach _mDiaryReckords;
+    		
+    		_mDiaryReckords = [];
+        
+			private _diaryRecord = player createDiaryRecord ["Diary", [_missionName, _briefingInfo]];
+			_mDiaryReckords pushBack _diaryRecord;
+		};
+		
+		public method CreateWelcomeBriefing("_welcomeText" as String)
+		{
+			player createDiarySubject ["Welcome", "Welcome"];
+			
+			player createDiaryRecord ["Welcome", ["Welcome", _welcomeText]];
+		};
+		
+		public method AddMissionResultToHistory("_missionResult" as MissionResult)
+		{
+			if (!(player diarySubjectExists "Results")) then {
+				player createDiarySubject ["Results", "Mission Results"];
+			};
+			
+			var _diaryText = [playerSide] call _missionResult.ToDiaryText;
+
+			player createDiaryRecord ["Results", [_missionResult.MissionName, _diaryText]];
+		};
+	};
+};

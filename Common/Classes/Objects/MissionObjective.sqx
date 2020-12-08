@@ -1,0 +1,29 @@
+/*
+ * Name:	MissionObjective
+ * Date:	2020-06-25
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Class that contains briefing information about a primary or secondary objective.
+ */
+namespace Tvtcf.Common
+{
+	public class MissionObjective
+	{
+		// Creates a MissionObjective object.
+		public constructor("_shortDescription" as String, ["_fullDescription" as String, ""])
+		{
+			_self.ShortDescription = _shortDescription;
+			_self.FullDescription = _fullDescription;
+			
+			if (_fullDescription == "") then {
+				_self.FullDescription = _shortDescription;
+			};
+		};
+		
+		public property String ShortDescription { get; private set; };
+		
+		public property String FullDescription { get; private set; };
+	};
+};

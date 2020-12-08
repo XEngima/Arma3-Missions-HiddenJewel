@@ -8,30 +8,42 @@ class EditorData
 	toggles=1;
 	class ItemIDProvider
 	{
-		nextID=2;
+		nextID=6;
+	};
+	class MarkerIDProvider
+	{
+		nextID=1;
 	};
 	class Camera
 	{
-		pos[]={7220.979,21.171129,10883.964};
-		dir[]={0.29307437,-0.4290221,0.85453129};
-		up[]={0.13918771,0.90327185,0.40583855};
-		aside[]={0.94598919,5.953334e-007,-0.32444921};
+		pos[]={7250.6377,6.4786134,10971.366};
+		dir[]={0.15674037,-0.61510795,0.77272785};
+		up[]={0.12227857,0.78843987,0.60283309};
+		aside[]={0.9800536,4.1207386e-008,-0.19879523};
 	};
 };
 binarizationWanted=0;
 addons[]=
 {
-	"A3_Characters_F"
+	"A3_Characters_F",
+	"A3_Ui_F"
 };
 class AddonsMetaData
 {
 	class List
 	{
-		items=1;
+		items=2;
 		class Item0
 		{
 			className="A3_Characters_F";
 			name="Arma 3 Alpha - Characters and Clothing";
+			author="Bohemia Interactive";
+			url="https://www.arma3.com";
+		};
+		class Item1
+		{
+			className="A3_Ui_F";
+			name="Arma 3 - User Interface";
 			author="Bohemia Interactive";
 			url="https://www.arma3.com";
 		};
@@ -64,7 +76,7 @@ class Mission
 	};
 	class Entities
 	{
-		items=1;
+		items=5;
 		class Item0
 		{
 			dataType="Group";
@@ -77,23 +89,106 @@ class Mission
 					dataType="Object";
 					class PositionInfo
 					{
-						position[]={7251.5645,4.768683,10965.862};
-						angles[]={0,3.5498376,0};
+						position[]={7219.3501,2.8716047,10955.608};
+						angles[]={0,1.5603179,0};
 					};
 					side="West";
 					flags=7;
 					class Attributes
 					{
+						name="b1";
 						isPlayer=1;
 					};
 					id=1;
 					type="B_Soldier_F";
+					class CustomAttributes
+					{
+						class Attribute0
+						{
+							property="speaker";
+							expression="_this setspeaker _value;";
+							class Value
+							{
+								class data
+								{
+									class type
+									{
+										type[]=
+										{
+											"STRING"
+										};
+									};
+									value="Male01ENG";
+								};
+							};
+						};
+						class Attribute1
+						{
+							property="pitch";
+							expression="_this setpitch _value;";
+							class Value
+							{
+								class data
+								{
+									class type
+									{
+										type[]=
+										{
+											"SCALAR"
+										};
+									};
+									value=1;
+								};
+							};
+						};
+						nAttributes=2;
+					};
 				};
 			};
 			class Attributes
 			{
 			};
 			id=0;
+		};
+		class Item1
+		{
+			dataType="Marker";
+			position[]={7216.7432,0,10875.13};
+			name="base_west_NavalMarker";
+			type="Empty";
+			angle=204.06;
+			id=2;
+			atlOffset=8.474411;
+		};
+		class Item2
+		{
+			dataType="Marker";
+			position[]={7221.5977,11.829346,10955.873};
+			name="respawn_west";
+			type="Empty";
+			angle=96.250793;
+			id=3;
+			atlOffset=8.7979822;
+		};
+		class Item3
+		{
+			dataType="Marker";
+			position[]={7250.9639,13.359863,10972.759};
+			name="base_west_LandVehicleMarker";
+			type="Empty";
+			angle=15.598999;
+			id=4;
+			atlOffset=8.3909817;
+		};
+		class Item4
+		{
+			dataType="Marker";
+			position[]={7219.8931,12.689,10966.07};
+			name="base_west_AmmoCrateMarker";
+			type="Empty";
+			angle=96.250977;
+			id=5;
+			atlOffset=9.0365953;
 		};
 	};
 };

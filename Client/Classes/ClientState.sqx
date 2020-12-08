@@ -1,0 +1,45 @@
+/*
+ * Name:	ClientState
+ * Date:	2020-06-30
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Handles state properties of the current client.
+ */
+
+using Tvtcf.Communication;
+
+namespace Tvtcf.Client.Statics
+{
+	public class ClientState
+	{
+		public static method Init()
+		{
+			_self.IsAlive = true;
+		};
+		
+		public static property Boolean IsAlive { get; private set; };
+		
+		public static method SetPlayerIsAlive("_isAlive" as Boolean)
+		{
+			_self.IsAlive = _isAlive;
+			diag_log ("ISALIVE: " + (name player) + " is alive: " + str _isAlive);
+		};
+		
+		public static method Boolean GetHasInserted()
+		{
+			var _hasInserted = false;
+
+			if (playerSide == west) then
+			{
+				_hasInserted = call PublicVariableHandler.GetWestHasInserted;
+			}
+			else {
+				_hasInserted = call PublicVariableHandler.GetEastHasInserted;
+			};
+			
+			return _hasInserted;
+		};
+	};
+};

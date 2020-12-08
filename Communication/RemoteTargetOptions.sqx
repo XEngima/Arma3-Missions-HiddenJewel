@@ -1,0 +1,27 @@
+/*
+ * Name:    RemoteTargetOptions
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * A pseudo enum with all possible target types for the remoteExec command.
+ */
+namespace Tvtcf.Communication
+{
+	public class RemoteTargetOptions
+	{
+        // Creates a RemoteTargetOptions object.
+        public static method Init()
+        {
+        	_self.All = 0;
+        	_self.Server = 2;
+        	_self.ClientsNotServer = -2;
+        	_self.Players = [0, -2] select isDedicated;
+		};
+		
+		public static property Scalar All { get; private set; };
+		public static property Scalar Server { get; private set; };
+		public static property Scalar ClientsNotServer { get; private set; };
+		public static property Scalar Players { get; private set; };
+	};
+};

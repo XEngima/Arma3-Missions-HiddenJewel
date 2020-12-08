@@ -1,0 +1,176 @@
+/*
+ * Name:	ZoomToMarker
+ * Date:	2020-10-04
+ * Version: 1.0
+ * Author:  josef
+ *
+ * Description:
+ * zoomtomarkers
+ */
+disableSerialization;
+ 
+namespace Josef.Common
+{
+	public class MapCtrl
+	{
+	
+		// Creates a ZoomToMarker object.
+		public constructor {
+		};
+		
+		/*
+		/ Return default map ctrl in a Array.
+		*/
+		public static method Array DefaultMapControl() {
+			var _defaultMainMapCtrl = (findDisplay 12) displayCtrl 51;
+			return [_defaultMainMapCtrl];
+		};
+		
+		/*
+		/ Open default map.
+		*/
+		public static method OpenDefaultMap() {
+			openMap true;
+		};
+		
+		/*
+		/ Move and zoom map to rectangle
+		/ Params:
+		/		_mapControl:        Array with one control.
+		/		_rectangle:         Array with two arrays, top-left pos and bottom-right pos.
+		/		_padding:           Distance from rectangle to screen side.
+		/		_minViewDistance:   A minimum vissible height or width.
+		/		_animationTime:     Time of zoom animation.
+		/		_startViewDistance: Start vissible height or width.
+		/ 
+		*/
+		public static method MoveMapToRectangle("_mapControlArray" as Array, "_rectangle" as Array, ["_padding" as Scalar, 50], ["_minViewDistance" as Scalar, 100], ["_animationTime" as Scalar, 0], ["_startViewDistance" as Scalar, 1000] )
+		{
+			//private "_ctrlMap" as Control;
+			var _ctrlMap = _mapControlArray select 0 as Control;
+			var _debug = false;
+			
+			// Calculate bounding box (_rectangle) size. Metric values.
+			var _topleft	 = _rectangle select 0;
+			var _bottomright = _rectangle select 1;
+			var _bBoxTop     = (_topleft select 1) + _padding;
+			var _bBoxLeft    = (_topleft select 0) - _padding;
+			var _bBoxBottom  = (_bottomright select 1) - _padding;
+			var _bBoxRight   = (_bottomright select 0) + _padding;
+			var _bBoxW		 = _bBoxRight - _bBoxLeft;
+			var _bBoxH		 = _bBoxTop - _bBoxBottom;
+			var _bBoxCenter  = [(_bBoxW /2)  + _bBoxLeft, (_bBoxH / 2) + _bBoxBottom];
+			
+			// Calculate map control size. Screen size values (Percent of viewPort)
+			var _ctrlPos		= ctrlPosition _ctrlMap;
+			var _ctrlW 			= _ctrlPos select 2;
+			var _ctrlH 			= _ctrlPos select 3;
+			
+			// If screen (map control) aspect ratio is wider than bBox aspect ratio.
+			// Recalculate from distance on y-axis to distance on x-axis.
+			var _ctrlAspectRatio = _ctrlW / (_ctrlH / (4/3)); // viewPort is ALWAYS 4/3.
+			var _bBoxAspectRatio = _bBoxW / _bBoxH;
+			var _viewDistance = _bBoxW;
+			if (_bBoxAspectRatio < _ctrlAspectRatio) then {
+				_viewDistance = _bBoxH * _ctrlAspectRatio;
+			};	
+			
+			// Calculate zoom levels.
+			var _minZoomLevel	= _minViewDistance / (worldSize * _ctrlW);
+			var _startZoom		= _startViewDistance / (worldSize * _ctrlW);
+			var _zoom			= _viewDistance / (worldSize * _ctrlW);
+			_zoom			  	= [_zoom, _minZoomLevel] select (_zoom<_minZoomLevel);
+			
+			
+			// Move map to desire possition and zoom.
+			_ctrlMap ctrlMapAnimAdd [0, _startZoom, _bBoxCenter];
+			_ctrlMap ctrlMapAnimAdd [_animationTime, _zoom, _bBoxCenter];
+			ctrlMapAnimCommit _ctrlMap;
+			waitUntil {ctrlMapAnimDone _ctrlMap};
+			
+			// Debug info.
+			if (_debug) then {
+				// Calculate vissible coordinates.
+				var _ctrlMapRight 	= (_ctrlPos select 0) + _ctrlW;
+				var _ctrlMapBottom 	= (_ctrlPos select 1) + _ctrlH;
+				var _mapCoordinateLeftTop     = _ctrlMap ctrlMapScreenToWorld [(_ctrlPos select 0), (_ctrlPos select 1)];
+				var _mapCoordinateRightBottom = _ctrlMap ctrlMapScreenToWorld [_ctrlMapRight, _ctrlMapBottom];
+				var _viewW 			= (_mapCoordinateRightBottom select 0) -  (_mapCoordinateLeftTop select 0);
+				var _viewH 			= (_mapCoordinateLeftTop select 1) - (_mapCoordinateRightBottom select 1);
+			
+				systemChat format ["_bBoxAspectRatio: %1     _ctrlAspectRatio: %2     _distance: %3", _bBoxAspectRatio, _ctrlAspectRatio, _viewDistance];
+				systemChat format ["_zoom: %1", _zoom];
+				systemChat format ["_ctrlPos: %1", _ctrlPos];
+				systemChat format ["_bBoxW: %1  _bBoxH: %2",_bBoxW, _bBoxH];
+				systemChat format ["viewW: %1     viewH: %2", _viewW, _viewH];
+				
+				var _text = format ["ctrlPosition: %1 <br />safeZoneW: %2<br />safeZoneH: %3<br />worldSize: %4<br />getResolution: %5<br />ctrlMapScale: %6<br />_mapCoordLeftTop: %7<br />_mapCoordRightBott: %8<br />_viewW: %9<br />_viewH: %10",
+					ctrlPosition _ctrlMap,
+					safeZoneW,
+					safeZoneH,
+					worldSize,
+					getResolution,
+					ctrlMapScale _ctrlMap,
+					_mapCoordinateLeftTop,
+					_mapCoordinateRightBottom,
+					_viewW,
+					_viewH
+				];
+				copyToClipboard _text;
+	
+				
+				[[_bBoxLeft, _bBoxTop], "hd_dot", "ColorBlack", "MarkerLeftTop", true] call Sqx.Markers.Marker.CreateIconMarkerLocal;
+				[[_bBoxRight, _bBoxBottom], "hd_dot", "ColorBlack", "MarkerLeftTop", true] call Sqx.Markers.Marker.CreateIconMarkerLocal;
+				[_bBoxCenter, "hd_dot", "ColorBlack", "MarkerCenter", true] call Sqx.Markers.Marker.CreateIconMarkerLocal;
+			};
+		};
+		
+		
+		/*
+		/	Return a rectangle that will surround all markers.
+		/	param: Array with markers.
+		/
+		/	Return: Array in format [[left, top], [right, bottom]]
+		*/
+		public static method Array MarkersBoundingBox("_markers" as Array)
+		{
+			
+			var _bBoxLeft   = 0;
+			var _bBoxTop    = 0;
+			var _bBoxRight  = 0;
+			var _bBoxBottom = 0;
+			var _xAxis = [];
+			var _yAxis = [];
+			
+			{
+				var _markerPos 	= getMarkerPos _x;
+				var _markerSize = getMarkerSize _x;
+				var _markerDir 	= markerDir _x;
+				
+				var _leftSide 	= _markerPos getPos [(_markerSize select 0), (_markerDir - 90)];
+				var _rightSide 	= _markerPos getPos [(_markerSize select 0), (_markerDir + 90)];
+				
+				var _topLeft 	 = _leftSide getPos [(_markerSize select 1), _markerDir];
+				var _topRight  	 = _rightSide getPos [(_markerSize select 1), _markerDir];
+				var _bottomLeft  = _leftSide getPos [(_markerSize select 1), (_markerDir - 180)];
+				var _bottomRight = _rightSide getPos [(_markerSize select 1), (_markerDir - 180)];
+				
+				
+				{
+					_xAxis pushBack (_x select 0);
+					_yAxis pushBack (_x select 1);
+				} foreach [_topLeft, _topRight, _bottomLeft, _bottomRight];
+				
+			} foreach _markers as String;
+			
+			_bBoxLeft 	= selectMin _xAxis;
+			_bBoxRight 	= selectMax _xAxis;
+			_bBoxBottom	= selectMin _yAxis;
+			_bBoxTop 	= selectMax _yAxis;
+			
+			var _rect = [[_bBoxLeft, _bBoxTop], [_bBoxRight, _bBoxBottom]];
+			return _rect;
+		};
+	};
+};
+

@@ -1,0 +1,285 @@
+/*
+ * Name:	ClientEventReciever
+ * Date:	2019-01-31
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Static class that handles all custom events sent from other machines.
+ */
+
+using Tvtcf.Common;
+using Tvtcf.Common.Statics;
+using Tvtcf.Client;
+using Tvtcf.Communication;
+
+namespace Tvtcf.Client.Statics
+{
+	public class ClientEventReciever
+	{
+		// Called when the mission engine on the server starts.
+		public static method OnCampaignStart()
+		{
+			var _welcomeTutorial = [TutorialType.Welcome] call TutorialConfig.GetTutorial;
+			var _briefingText = call _welcomeTutorial.ToBriefingText;
+			[_briefingText] call ClientObjects.BriefingHandler.CreateWelcomeBriefing;
+
+			[] spawn {
+				sleep 6;
+				[TutorialType.Welcome] call TutorialHandler.ShowTutorial;
+				
+				var _allPlayers = call BIS_fnc_listPlayers;
+				var _westRepresented = false;
+				var _eastRepresented = false;
+				
+				{
+					if (side group _x == west) then {
+						_westRepresented = true;
+					} else {
+						_eastRepresented = true;
+					};
+				} foreach _allPlayers;
+				
+				if (!_westRepresented || !_eastRepresented) then {
+					sleep 2;
+					[TutorialType.CoopAndSpInfo] call TutorialHandler.ShowTutorial;
+				};
+			};
+		};
+	
+		// Called each time a second passes in the mission.
+		// _missionTimeRemaining (Scalar): The remaining time until the mission ends in seconds.
+		public static method OnMissionTimeTick("_missionTimeRemaining" as Scalar)
+		{
+			hint ("Mission ends in " + (str _missionTimeRemaining) + " minutes.");
+			call TvtcfActionMenuHandler.UpdateVisibleOptions;
+		};
+		
+		public static method OnMissionStarting("_isFirstMission" as Boolean)
+		{
+			// Delete tasks
+			call ClientObjects.TaskHandler.DeleteAllTasks;
+			call ClientObjects.MapMarkerHandler.CleanUpAllMarkers;
+		};
+		
+		public static method OnMissionSetup("_missionMarkersInfo" as MissionMarkersInfo)
+		{
+			// Update the markers
+			
+			[_missionMarkersInfo] call ClientObjects.MapMarkerHandler.UpdateMarkers;
+			
+			var _startMarkers = [playerSide] call _missionMarkersInfo.GetStartMarkersBySide;
+			
+			if (count _startMarkers > 0) then {
+				call ClientObjects.BaseInsertionService.RunAsync;
+			}
+			else
+			{
+				// If no insertion markers are specified, perform insertion immediately
+				if (player == leader group player) then {
+					["ServerEventReciever.OnPlayerPerformingInsertion", [playerSide, getPos player, true]] call Remote.Invoke;
+				};
+			};
+			
+			call TvtcfActionMenuHandler.UpdateVisibleOptions;
+		};
+		
+		public static method OnMissionBriefing("_missionBriefing" as MissionBriefing, "_serverTime" as Scalar)
+		{
+			private ["_missionPrepareCounter" as MissionPrepareCounter];
+			private ["_briefingService" as MissionBriefingService];
+			
+			private MissionMarkersInfo _markersInfo = call PublicVariableHandler.GetMissionMarkersInfo;
+			private Array _startMarkers = [playerSide] call _markersInfo.GetStartMarkersBySide;
+			
+			// Only show mission prepare counter if there are startmarkers defined for the current side in the current mission.
+			
+			if (count _startMarkers > 0) then {
+				_missionPrepareCounter = [ClientObjects.MessageHandler, _serverTime + CommonObjects.MissionParametersHandler.MandatoryPrepareTime] new MissionPrepareCounter;
+				call _missionPrepareCounter.RunAsync;
+			};
+		
+			_briefingService = [_missionBriefing, ClientObjects.BriefingHandler, ClientObjects.TaskHandler, classNull, false] new MissionBriefingService;
+			
+			call _briefingService.RunAsync;
+		};
+		
+		public static method OnInsertGroup("_group" as Group, "_position" as Array, "_showInsertionMarker" as Boolean, "_doTeleport" as Boolean)
+		{
+			private ["_teleporter" as TeleportService];
+			
+			// Stop the base insertion service.
+			call ClientObjects.BaseInsertionService.Cancel;
+			
+			if (playerSide == side _group) then
+			{
+				if (_showInsertionMarker) then {
+					[_position] call ClientObjects.MapMarkerHandler.AddInsertionMarker;
+				}
+				else {
+					call ClientObjects.MapMarkerHandler.RemoveInsertionMarkers;
+				};
+			
+				if (_doTeleport) then {
+					_teleporter = [_position] new TeleportService;
+					call _teleporter.RunAsync;
+				};
+				
+				if (ClientObjects.MapMarkerHandler.MissionHasReturnObjective) then {
+					[_position] call ClientObjects.ExtractionSymbolHandler.CreateSymbol;
+				};
+			};
+			
+			// Hide insertion menu option
+			call TvtcfActionMenuHandler.UpdateVisibleOptions;
+		};
+
+		public static method OnCreateSideMarker("_side" as Side, "_markerInfo" as Marker)
+		{
+			if (_side == playerSide) then {
+				[_markerInfo] call ClientObjects.MapMarkerHandler.AddMarker;
+			};
+		};
+
+		public static method OnTaskStateChanged("_side" as Side, "_objectivePrio" as ObjectivePrio, "_objectiveState" as ObjectiveState)
+		{
+			private ["_teleporter" as TeleportService];
+			
+			if (_side == playerSide) then
+			{
+				[_objectivePrio, _objectiveState, true] call ClientObjects.TaskHandler.SetTaskState;
+				
+				if (_objectivePrio == ObjectivePrio.Return && _objectiveState == ObjectiveState.Succeeded) then
+				{
+					// Remove eventual extraction symbol
+					call ClientObjects.ExtractionSymbolHandler.DeleteSymbol;
+					
+					var _baseMarkerName = [playerSide, BaseMarker.Respawn] call CommonObjects.BaseMarkersConfig.GetMarkerName;
+					
+					_teleporter = [getMarkerPos _baseMarkerName, false] new TeleportService;
+					
+					[_teleporter] spawn {
+						params ["_teleporter" as TeleportService];
+						
+						sleep 5;
+						
+						[true] call ClientState.SetPlayerIsAlive;
+						call ClientObjects.CameraHandler.UpdateDeathCamera;
+						call _teleporter.RunAsync;
+					};
+				};
+			};
+		};
+		
+		public static method OnMissionEnding()
+		{
+			private ["_teleporter" as TeleportService];
+			
+			cutText ["", "BLACK OUT", 1];
+			
+			sleep 1.2;
+			
+			// Teleport to base (if not already there)
+			
+			private _baseMarkerName = [playerSide, BaseMarker.Respawn] call CommonObjects.BaseMarkersConfig.GetMarkerName;
+			
+			if (player distance getMarkerPos _baseMarkerName > 50) then {
+				_teleporter = [getMarkerPos _baseMarkerName, false, false] new TeleportService;
+				call _teleporter.RunAsync;
+			};
+			
+			// Reset loadout
+			
+			if (playerSide == west) then {
+				player setUnitLoadout "B_Soldier_F";
+			}
+			else {
+				player setUnitLoadout "O_Soldier_F";
+			};
+			
+			// "Resurrect" player.
+			[true] call ClientState.SetPlayerIsAlive;
+			
+			// Remove eventual extraction symbol
+			call ClientObjects.ExtractionSymbolHandler.DeleteSymbol;
+		};
+		
+		public static method OnMissionEnded("_missionResult" as MissionResult, "_isLastMission" as Boolean)
+		{
+			// "Resurrect" player.
+			[true] call ClientState.SetPlayerIsAlive;
+			call ClientObjects.CameraHandler.UpdateDeathCamera;
+			
+			// Add mission result to history briefing.
+			[_missionResult] call ClientObjects.BriefingHandler.AddMissionResultToHistory;
+
+			// Show insertion menu option.
+			call TvtcfActionMenuHandler.UpdateVisibleOptions;
+			
+			// Start the Next Mission Counter.
+			if (!_isLastMission && CommonObjects.MissionParametersHandler.TimeBetweenMissions > 0) then {
+				call ClientObjects.WaitingForMissionCounter.RunAsync;
+			};
+			
+			// Show the debriefing dialog.
+			var _debriefingText = [playerSide] call _missionResult.ToDiaryText;
+			_debriefingText = [_debriefingText, "<br />", "\n"] call Functions.StringReplace;
+			var _debriefingDialog = ["Mission Debriefing", _debriefingText] new DebriefingDialog;
+			
+			// Show the dialog with a few seconds delay.
+			[_debriefingDialog] spawn {
+				params ["_debriefingDialog" as DebriefingDialog];
+				sleep 3;
+				call _debriefingDialog.ShowDialog;
+			};
+		};
+		
+		public static method OnCampaignEnded("_westAccumulatedScore" as Scalar, "_eastAccumulatedScore" as Scalar)
+		{
+			call ClientObjects.WaitingForMissionCounter.Cancel;
+		
+			if (playerSide == west) then {
+				var _campaignEndService = [_westAccumulatedScore >= _eastAccumulatedScore] new CampaignEndService;
+				call _campaignEndService.RunAsync;
+			}
+			else {
+				var _campaignEndService = [_eastAccumulatedScore >= _westAccumulatedScore] new CampaignEndService;
+				call _campaignEndService.RunAsync;
+			};
+		};
+		
+		public static method OnUnitKilled("_playerUid" as String, "_unit" as Object, "_killer" as Object)
+		{
+			// If another player has died, update current player's death camera - in case we are currently following the player who just died.
+			
+			if (_playerUid != getPlayerUID player) then
+			{
+				call ClientObjects.CameraHandler.UpdateDeathCamera;
+			};
+		};
+		
+		public static method OnShowNotification("_side" as Side, "_text" as String)
+		{
+			if (_side == playerSide) then {
+				[_text] call ClientObjects.TaskHandler.ShowNotification;
+			};
+		};
+		
+		public static method OnAddAction("_serverActionId" as Scalar, "_object" as Object, "_title" as String, "_side" as Side)
+		{
+			if (_side == playerSide) then {
+				[_serverActionId, _object, _title] call ClientObjects.ClientMissionActionHandler.AddAction;
+			};
+		};
+		
+		public static method OnDeleteActions("_actionIds" as Array)
+		{
+			[_actionIds] call ClientObjects.ClientMissionActionHandler.DeleteActions;
+		};
+		
+		public static method OnForceNextMission()
+		{
+			call ClientObjects.WaitingForMissionCounter.Cancel;
+		};
+	};
+};

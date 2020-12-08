@@ -1,0 +1,52 @@
+/*
+ * Name:	ServerEventHandlers
+ * Date:	2019-02-01
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Container for the server's event handlers.
+ */
+
+using Tvtcf.Communication;
+
+namespace Tvtcf.Server.Statics
+{
+	public class ServerEventHandlers
+	{
+		public static method Init()
+		{
+			// [Add all server event handlers here]
+			
+			// Fires when a JIP player is connecting.
+//			addMissionEventHandler ["PlayerConnected",
+//			{
+//				params ["_id" as Scalar, "_uid" as String, "_name" as String, "_jip" as Boolean, "_owner" as Scalar];
+//			}];
+			
+			// Fires when a JIP player is disconnecting.
+//			addMissionEventHandler ["PlayerDisconnected", {
+//				params ["_id" as Scalar, "_uid" as String, "_name" as String, "_jip" as Boolean, "_owner" as Scalar];
+//			}];
+			
+			// Fires when a player leaves the MP game.
+//			addMissionEventHandler ["HandleDisconnect", {
+//				params ["_unit" as Object, "_id" as Scalar, "_uid" as String, "_name" as String];
+//			}];
+			
+			// Add killed event handlers on all playable units
+			
+			{
+				// Triggered when the unit (player or playable AI) is killed.
+				_x addEventHandler ["Killed", {
+					params ["_unit" as Object, "_killer" as Object, "_instigator" as Object, "_useEffects" as Boolean];
+					
+					if (local _unit) then
+					{
+						["ClientEventReciever.OnUnitKilled", ["", _unit, _killer]] call Remote.Invoke;
+					};
+				}];
+			} foreach switchableUnits as Object;
+		};
+	};
+};
