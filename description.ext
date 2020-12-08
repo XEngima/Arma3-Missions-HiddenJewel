@@ -15,8 +15,8 @@ onLoadName = "My Campaign";
 overviewText = "My Campaign";
 onLoadMission = "Built upon Engima's TvT Campaign Framework (TvTCF)."; // This very text is to be here for the reason of fulfilling the licence. See the file LICENCE.
 
-overviewTextLocked = "";
-author = "Me";
+overviewTextLocked = "Operation Hidden Jewel";
+author = "Engima";
 
 OnLoadMissionTime = false;
 disabledAI = 1;

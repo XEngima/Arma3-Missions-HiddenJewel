@@ -8,7 +8,7 @@ class EditorData
 	toggles=1;
 	class ItemIDProvider
 	{
-		nextID=6;
+		nextID=16;
 	};
 	class MarkerIDProvider
 	{
@@ -16,10 +16,10 @@ class EditorData
 	};
 	class Camera
 	{
-		pos[]={7250.6377,6.4786134,10971.366};
-		dir[]={0.15674037,-0.61510795,0.77272785};
-		up[]={0.12227857,0.78843987,0.60283309};
-		aside[]={0.9800536,4.1207386e-008,-0.19879523};
+		pos[]={27597.09,23.925068,24597.309};
+		dir[]={0.73736876,-0.67533839,0.019235756};
+		up[]={0.67511702,0.73750281,0.017610146};
+		aside[]={0.026082033,-4.4814442e-007,-0.99973655};
 	};
 };
 binarizationWanted=0;
@@ -76,7 +76,7 @@ class Mission
 	};
 	class Entities
 	{
-		items=5;
+		items=10;
 		class Item0
 		{
 			dataType="Group";
@@ -101,6 +101,7 @@ class Mission
 					};
 					id=1;
 					type="B_Soldier_F";
+					atlOffset=-2.3841858e-007;
 					class CustomAttributes
 					{
 						class Attribute0
@@ -149,6 +150,7 @@ class Mission
 			{
 			};
 			id=0;
+			atlOffset=-2.3841858e-007;
 		};
 		class Item1
 		{
@@ -166,7 +168,7 @@ class Mission
 			position[]={7221.5977,11.829346,10955.873};
 			name="respawn_west";
 			type="Empty";
-			angle=96.250793;
+			angle=96.250786;
 			id=3;
 			atlOffset=8.7979822;
 		};
@@ -186,9 +188,124 @@ class Mission
 			position[]={7219.8931,12.689,10966.07};
 			name="base_west_AmmoCrateMarker";
 			type="Empty";
-			angle=96.250977;
+			angle=96.250969;
 			id=5;
 			atlOffset=9.0365953;
+		};
+		class Item5
+		{
+			dataType="Marker";
+			position[]={27654.797,2.506,24528.902};
+			name="base_east_NavalMarker";
+			type="Empty";
+			angle=156.24896;
+			id=8;
+			atlOffset=7.4354482;
+		};
+		class Item6
+		{
+			dataType="Marker";
+			position[]={27621.676,12.947,24592.17};
+			name="respawn_east";
+			type="Empty";
+			angle=96.250984;
+			id=9;
+			atlOffset=9.2858915;
+		};
+		class Item7
+		{
+			dataType="Marker";
+			position[]={27669.619,14.174,24644.99};
+			name="base_east_LandVehicleMarker";
+			type="Empty";
+			angle=253.05095;
+			id=10;
+			atlOffset=6.055418;
+		};
+		class Item8
+		{
+			dataType="Marker";
+			position[]={27643.242,14.722,24589.729};
+			name="base_east_AmmoCrateMarker";
+			type="Empty";
+			angle=283.42294;
+			id=11;
+			atlOffset=10.685669;
+		};
+		class Item9
+		{
+			dataType="Group";
+			side="East";
+			class Entities
+			{
+				items=1;
+				class Item0
+				{
+					dataType="Object";
+					class PositionInfo
+					{
+						position[]={27621.301,3.8265338,24595.008};
+						angles[]={0,1.7570404,0};
+					};
+					side="East";
+					flags=7;
+					class Attributes
+					{
+						name="o1";
+						isPlayable=1;
+					};
+					id=15;
+					type="O_Soldier_F";
+					atlOffset=-2.3841858e-007;
+					class CustomAttributes
+					{
+						class Attribute0
+						{
+							property="speaker";
+							expression="_this setspeaker _value;";
+							class Value
+							{
+								class data
+								{
+									class type
+									{
+										type[]=
+										{
+											"STRING"
+										};
+									};
+									value="Male02PER";
+								};
+							};
+						};
+						class Attribute1
+						{
+							property="pitch";
+							expression="_this setpitch _value;";
+							class Value
+							{
+								class data
+								{
+									class type
+									{
+										type[]=
+										{
+											"SCALAR"
+										};
+									};
+									value=1.02;
+								};
+							};
+						};
+						nAttributes=2;
+					};
+				};
+			};
+			class Attributes
+			{
+			};
+			id=14;
+			atlOffset=-2.3841858e-007;
 		};
 	};
 };
