@@ -10,7 +10,7 @@
  */
 
 // 1. Include the campaign's init file (which in turn includes all the files necessary for the campaign).
-call compile preprocessFileLineNumbers "Campaigns\MyCampaign\InitCampaign.sqx";
+call compile preprocessFileLineNumbers "Campaigns\HiddenJewel\InitCampaign.sqx";
 
 namespace Campaigns
 {
@@ -19,7 +19,7 @@ namespace Campaigns
 		public static method Campaign GetCampaign()
 		{
 			// 2. Create the campaign object
-			return new Campaigns.MyCampaign.MyOperation;
+			return new Campaigns.HiddenJewel.OperationHiddenJewel;
 		};
 	};
 };

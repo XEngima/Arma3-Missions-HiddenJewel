@@ -10,9 +10,9 @@
 
 using Campaigns;
 
-namespace Campaigns.MyCampaign
+namespace Campaigns.HiddenJewel
 {
-	public class MyOperation : Campaign
+	public class OperationHiddenJewel : Campaign
 	{
 		// Creates a MyOperation object.
 		public constructor()
@@ -22,7 +22,7 @@ namespace Campaigns.MyCampaign
 		
 		protected override method SelectMissions("_missions" as Array /* of Mission */)
 		{
-			_missions pushBack new Intro;
+			_missions pushBack new Escape;
 			
 			// Add more missions to the campaign here. Use the following pattern:
 		

@@ -8,18 +8,18 @@ class EditorData
 	toggles=1;
 	class ItemIDProvider
 	{
-		nextID=16;
+		nextID=17;
 	};
 	class MarkerIDProvider
 	{
-		nextID=1;
+		nextID=2;
 	};
 	class Camera
 	{
-		pos[]={27597.09,23.925068,24597.309};
-		dir[]={0.73736876,-0.67533839,0.019235756};
-		up[]={0.67511702,0.73750281,0.017610146};
-		aside[]={0.026082033,-4.4814442e-007,-0.99973655};
+		pos[]={16962.711,58.131947,12787.525};
+		dir[]={-0.74007928,-0.42929694,-0.51769876};
+		up[]={-0.35177812,0.90315866,-0.24607524};
+		aside[]={-0.5732035,-2.0154403e-008,0.81942564};
 	};
 };
 binarizationWanted=0;
@@ -76,7 +76,7 @@ class Mission
 	};
 	class Entities
 	{
-		items=10;
+		items=11;
 		class Item0
 		{
 			dataType="Group";
@@ -168,7 +168,7 @@ class Mission
 			position[]={7221.5977,11.829346,10955.873};
 			name="respawn_west";
 			type="Empty";
-			angle=96.250786;
+			angle=96.250778;
 			id=3;
 			atlOffset=8.7979822;
 		};
@@ -208,7 +208,7 @@ class Mission
 			position[]={27621.676,12.947,24592.17};
 			name="respawn_east";
 			type="Empty";
-			angle=96.250984;
+			angle=96.250969;
 			id=9;
 			atlOffset=9.2858915;
 		};
@@ -218,7 +218,7 @@ class Mission
 			position[]={27669.619,14.174,24644.99};
 			name="base_east_LandVehicleMarker";
 			type="Empty";
-			angle=253.05095;
+			angle=253.05093;
 			id=10;
 			atlOffset=6.055418;
 		};
@@ -228,7 +228,7 @@ class Mission
 			position[]={27643.242,14.722,24589.729};
 			name="base_east_AmmoCrateMarker";
 			type="Empty";
-			angle=283.42294;
+			angle=283.42285;
 			id=11;
 			atlOffset=10.685669;
 		};
@@ -306,6 +306,18 @@ class Mission
 			};
 			id=14;
 			atlOffset=-2.3841858e-007;
+		};
+		class Item10
+		{
+			dataType="Marker";
+			position[]={16825.152,21.926025,12633.357};
+			name="m_Pyrgos";
+			markerType="ELLIPSE";
+			type="ellipse";
+			a=400;
+			b=400;
+			id=16;
+			atlOffset=-1.4951782;
 		};
 	};
 };

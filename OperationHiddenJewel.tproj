@@ -4,19 +4,19 @@
     <SubNodes>
       <ProjectNodeViewModel xsi:type="ProjectFolderNodeViewModel" Name="Campaigns" FileName="Campaigns">
         <SubNodes>
-          <ProjectNodeViewModel xsi:type="ProjectFolderNodeViewModel" Name="MyCampaign" FileName="Campaigns\MyCampaign">
+          <ProjectNodeViewModel xsi:type="ProjectFolderNodeViewModel" Name="HiddenJewel" FileName="Campaigns\HiddenJewel">
             <SubNodes>
-              <ProjectNodeViewModel xsi:type="ProjectFolderNodeViewModel" Name="Missions" FileName="Campaigns\MyCampaign\Missions">
+              <ProjectNodeViewModel xsi:type="ProjectFolderNodeViewModel" Name="Missions" FileName="Campaigns\HiddenJewel\Missions">
                 <SubNodes>
-                  <ProjectNodeViewModel xsi:type="ProjectFileNodeViewModel" Name="Intro.sqx" FileName="Campaigns\MyCampaign\Missions\Intro.sqx">
+                  <ProjectNodeViewModel xsi:type="ProjectFileNodeViewModel" Name="Escape.sqx" FileName="Campaigns\HiddenJewel\Missions\Escape.sqx">
                     <SubNodes />
                   </ProjectNodeViewModel>
                 </SubNodes>
               </ProjectNodeViewModel>
-              <ProjectNodeViewModel xsi:type="ProjectFileNodeViewModel" Name="InitCampaign.sqx" FileName="Campaigns\MyCampaign\InitCampaign.sqx">
+              <ProjectNodeViewModel xsi:type="ProjectFileNodeViewModel" Name="InitCampaign.sqx" FileName="Campaigns\HiddenJewel\InitCampaign.sqx">
                 <SubNodes />
               </ProjectNodeViewModel>
-              <ProjectNodeViewModel xsi:type="ProjectFileNodeViewModel" Name="MyOperation.sqx" FileName="Campaigns\MyCampaign\MyOperation.sqx">
+              <ProjectNodeViewModel xsi:type="ProjectFileNodeViewModel" Name="OperationHiddenJewel.sqx" FileName="Campaigns\HiddenJewel\OperationHiddenJewel.sqx">
                 <SubNodes />
               </ProjectNodeViewModel>
             </SubNodes>

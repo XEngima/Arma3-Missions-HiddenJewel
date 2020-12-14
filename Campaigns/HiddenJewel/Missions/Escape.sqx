@@ -12,9 +12,9 @@ using Tvtcf.Common;
 using Tvtcf.Server;
 using Campaigns;
 
-namespace Campaigns.MyCampaign
+namespace Campaigns.HiddenJewel
 {
-	public class Intro : Mission
+	public class Escape : Mission
 	{
 		// Creates a Intro object.
 		public constructor()
@@ -24,7 +24,8 @@ namespace Campaigns.MyCampaign
 		
 		protected override method InitMission("_mission" as MissionSettings)
 		{
-			_mission.Name = "Intro";
+			_mission.Name = "Escape";
+			_mission.InsertionAreasActing = ["m_Pyrgos"];
 		};
 	};
 };
